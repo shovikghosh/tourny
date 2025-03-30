@@ -1,0 +1,151 @@
+package com.tournament.integration;
+
+import com.tournament.model.*;
+import com.tournament.service.PlayerService;
+import com.tournament.service.TournamentService;
+import com.tournament.dto.CreateMatchRequest;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@SpringBootTest
+@ActiveProfiles("test")
+@Transactional
+public class TournamentIntegrationTest {
+
+    @Autowired
+    private PlayerService playerService;
+
+    @Autowired
+    private TournamentService tournamentService;
+
+    private Player player1;
+    private Player player2;
+    private Player player3;
+    private Player player4;
+    private Tournament tournament;
+
+    private String generateUniqueEmail(String prefix) {
+        return prefix + UUID.randomUUID().toString().substring(0, 8) + "@example.com";
+    }
+
+    @BeforeEach
+    void setUp() {
+        // Create players with unique emails
+        player1 = new Player();
+        player1.setName("John Doe");
+        player1.setEmail(generateUniqueEmail("john"));
+        player1.setRank(1);
+        player1 = playerService.createPlayer(player1);
+
+        player2 = new Player();
+        player2.setName("Jane Smith");
+        player2.setEmail(generateUniqueEmail("jane"));
+        player2.setRank(2);
+        player2 = playerService.createPlayer(player2);
+
+        player3 = new Player();
+        player3.setName("Bob Wilson");
+        player3.setEmail(generateUniqueEmail("bob"));
+        player3.setRank(3);
+        player3 = playerService.createPlayer(player3);
+
+        player4 = new Player();
+        player4.setName("Alice Brown");
+        player4.setEmail(generateUniqueEmail("alice"));
+        player4.setRank(4);
+        player4 = playerService.createPlayer(player4);
+
+        // Create tournament
+        tournament = new Tournament();
+        tournament.setName("Test Tournament");
+        tournament.setStartDate(LocalDate.now());
+        tournament.setEndDate(LocalDate.now().plusDays(7));
+        tournament.setStatus(TournamentStatus.PENDING);
+        
+        // Add players to tournament
+        tournament.addPlayer(player1);
+        tournament.addPlayer(player2);
+        tournament.addPlayer(player3);
+        tournament.addPlayer(player4);
+        
+        tournament = tournamentService.createTournament(tournament);
+    }
+
+    @Test
+    void testCreateAndUpdateMatch() {
+        // Create match request
+        CreateMatchRequest request = new CreateMatchRequest();
+        request.setPlayer1Id(player1.getId());
+        request.setPlayer2Id(player2.getId());
+        request.setRound(1);
+        request.setScheduledTime(LocalDateTime.now().plusHours(1));
+        request.setVenue("Test Venue");
+        request.setNotes("Test Match");
+
+        // Create match
+        Match match1 = tournamentService.createMatch(tournament.getId(), request);
+
+        // Update match score
+        MatchScore score = new MatchScore();
+        score.getSet(0).setPlayer1Score(11);
+        score.getSet(0).setPlayer2Score(9);
+        score.getSet(1).setPlayer1Score(11);
+        score.getSet(1).setPlayer2Score(7);
+        score.getSet(2).setPlayer1Score(11);
+        score.getSet(2).setPlayer2Score(8);
+
+        tournamentService.updateMatchScore(tournament.getId(), match1.getId(), score);
+
+        // Verify match was updated
+        Match updatedMatch = tournamentService.getMatch(tournament.getId(), match1.getId());
+        assertNotNull(updatedMatch);
+        assertEquals(MatchStatus.COMPLETED, updatedMatch.getStatus());
+        assertEquals(11, updatedMatch.getScore().getSet(0).getPlayer1Score());
+        assertEquals(9, updatedMatch.getScore().getSet(0).getPlayer2Score());
+        assertEquals(11, updatedMatch.getScore().getSet(1).getPlayer1Score());
+        assertEquals(7, updatedMatch.getScore().getSet(1).getPlayer2Score());
+        assertEquals(11, updatedMatch.getScore().getSet(2).getPlayer1Score());
+        assertEquals(8, updatedMatch.getScore().getSet(2).getPlayer2Score());
+    }
+
+    @Test
+    void testTournamentCreation() {
+        // Verify tournament was created correctly
+        Tournament savedTournament = tournamentService.getTournament(tournament.getId());
+        assertNotNull(savedTournament);
+        assertEquals("Test Tournament", savedTournament.getName());
+        assertEquals(4, savedTournament.getPlayers().size());
+        assertTrue(savedTournament.getPlayers().contains(player1));
+        assertTrue(savedTournament.getPlayers().contains(player2));
+        assertTrue(savedTournament.getPlayers().contains(player3));
+        assertTrue(savedTournament.getPlayers().contains(player4));
+    }
+
+    @Test
+    void testPlayerCreation() {
+        // Create a new player with unique email
+        Player newPlayer = new Player();
+        newPlayer.setName("Test Player");
+        newPlayer.setEmail(generateUniqueEmail("test"));
+        newPlayer.setRank(5);
+        newPlayer = playerService.createPlayer(newPlayer);
+
+        // Verify player was created correctly
+        Player savedPlayer = playerService.getPlayer(newPlayer.getId());
+        assertNotNull(savedPlayer);
+        assertEquals("Test Player", savedPlayer.getName());
+        assertEquals(newPlayer.getEmail(), savedPlayer.getEmail());
+        assertEquals(5, savedPlayer.getRank());
+    }
+} 
