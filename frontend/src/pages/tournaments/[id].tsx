@@ -1,1 +1,0 @@
-import { Tournament } from '@/types/types'; 

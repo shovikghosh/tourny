@@ -5,6 +5,94 @@
     },
     "item": [
         {
+            "name": "Players",
+            "item": [
+                {
+                    "name": "Get All Players",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/players",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "players"]
+                        },
+                        "description": "Get all players"
+                    }
+                },
+                {
+                    "name": "Get Player by ID",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/players/1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "players", "1"]
+                        },
+                        "description": "Get a specific player by ID"
+                    }
+                },
+                {
+                    "name": "Create Player",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"rank\": 1,\n    \"active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/players",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "players"]
+                        },
+                        "description": "Create a new player"
+                    }
+                },
+                {
+                    "name": "Update Player",
+                    "request": {
+                        "method": "PUT",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"rank\": 2,\n    \"active\": true\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/players/1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "players", "1"]
+                        },
+                        "description": "Update a player's information"
+                    }
+                },
+                {
+                    "name": "Delete Player",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/players/1",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "players", "1"]
+                        },
+                        "description": "Delete a player"
+                    }
+                }
+            ]
+        },
+        {
             "name": "Tournaments",
             "item": [
                 {
@@ -56,6 +144,28 @@
                     }
                 },
                 {
+                    "name": "Create Match",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"player1Id\": 1,\n    \"player2Id\": 2,\n    \"round\": 1,\n    \"scheduledTime\": \"2024-06-01T10:00:00\",\n    \"venue\": \"Main Hall\",\n    \"notes\": \"Quarter Final Match\"\n}"
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/tournaments/1/matches",
+                            "host": ["{{baseUrl}}"],
+                            "path": ["api", "tournaments", "1", "matches"]
+                        },
+                        "description": "Create a new match in a tournament"
+                    }
+                },
+                {
                     "name": "Update Match Score",
                     "request": {
                         "method": "PUT",
@@ -67,14 +177,14 @@
                         ],
                         "body": {
                             "mode": "raw",
-                            "raw": "{\n    \"score1\": 11,\n    \"score2\": 9\n}"
+                            "raw": "{\n    \"sets\": [\n        {\n            \"player1Score\": 11,\n            \"player2Score\": 9\n        },\n        {\n            \"player1Score\": 11,\n            \"player2Score\": 7\n        },\n        {\n            \"player1Score\": 11,\n            \"player2Score\": 8\n        }\n    ],\n    \"totalSets\": 3\n}"
                         },
                         "url": {
                             "raw": "{{baseUrl}}/api/tournaments/1/matches/1",
                             "host": ["{{baseUrl}}"],
                             "path": ["api", "tournaments", "1", "matches", "1"]
                         },
-                        "description": "Update the score of a specific match in a tournament"
+                        "description": "Update the score of a specific match in a tournament. Each set contains player1Score and player2Score. The totalSets field indicates how many sets are in the match (default is 3)."
                     }
                 },
                 {

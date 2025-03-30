@@ -1,5 +1,6 @@
 package com.tournament.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.util.ArrayList;
@@ -21,15 +22,6 @@ public class Player {
 
     @Column
     private Integer rank;
-
-    @ManyToMany(mappedBy = "players")
-    private List<Tournament> tournaments = new ArrayList<>();
-
-    @OneToMany(mappedBy = "player1")
-    private List<Match> matchesAsPlayer1 = new ArrayList<>();
-
-    @OneToMany(mappedBy = "player2")
-    private List<Match> matchesAsPlayer2 = new ArrayList<>();
 
     @Column(nullable = false)
     private boolean active = true;

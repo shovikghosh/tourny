@@ -1,17 +1,27 @@
 package com.tournament.model;
 
+import jakarta.persistence.*;
 import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 
+@Embeddable
 @Data
 public class MatchScore {
+    @ElementCollection
+    @CollectionTable(name = "match_sets", joinColumns = @JoinColumn(name = "match_id"))
     private List<SetScore> sets = new ArrayList<>();
+    
+    @Column
     private int totalSets = 3; // Default number of sets
 
+    @Embeddable
     @Data
     public static class SetScore {
+        @Column(name = "player1_score")
         private Integer player1Score;
+        
+        @Column(name = "player2_score")
         private Integer player2Score;
     }
 
