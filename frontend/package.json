@@ -1,0 +1,6 @@
+{
+  "name": "table-tennis-tournament",
+  "version": "0.1.0",
+  "private": true,
+  // ... other configurations will be added by create-next-app
+} 
