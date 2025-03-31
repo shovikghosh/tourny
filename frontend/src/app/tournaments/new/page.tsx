@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { tournamentApi } from '@/services/api'
+import { api } from '@/services/api'
 
 export default function NewTournamentPage() {
   const router = useRouter()
@@ -15,17 +15,14 @@ export default function NewTournamentPage() {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const tournament = {
-      name: formData.get('name') as string,
-      startDate: formData.get('startDate') as string,
-      endDate: formData.get('endDate') as string,
-      status: 'PENDING' as const,
-      players: [],
-      matches: [],
+    const tournamentData = {
+      name: formData.get('name'),
+      startDate: formData.get('startDate'),
+      endDate: formData.get('endDate'),
     }
 
     try {
-      await tournamentApi.create(tournament)
+      await api.createTournament(tournamentData)
       router.push('/tournaments')
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create tournament')
