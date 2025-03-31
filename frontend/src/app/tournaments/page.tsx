@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Tournament } from '@/types/types'
-import { tournamentApi } from '@/services/api'
+import { Tournament } from '@/types/match'
+import { api } from '@/services/api'
 
 export default function TournamentsPage() {
   const [tournaments, setTournaments] = useState<Tournament[]>([])
@@ -13,7 +13,7 @@ export default function TournamentsPage() {
   useEffect(() => {
     const fetchTournaments = async () => {
       try {
-        const data = await tournamentApi.getAll()
+        const data = await api.getTournaments()
         setTournaments(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred')
