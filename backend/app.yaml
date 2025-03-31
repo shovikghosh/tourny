@@ -20,11 +20,13 @@ services:
         value: ${db.USERNAME}
       - key: SPRING_DATASOURCE_PASSWORD
         value: ${db.PASSWORD}
+      - key: SPRING_DATASOURCE_DRIVER_CLASS_NAME
+        value: "org.postgresql.Driver"
       # Other env variables
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
       - key: SPRING_JPA_SHOW_SQL
-        value: false
+        value: "false"
     # Optional: Specify instance size and count
     # instance_size_slug: basic-xs
     # instance_count: 1
