@@ -1,0 +1,25 @@
+name: tourny-backend
+services:
+- name: api
+  github:
+    branch: main
+    deploy_on_push: true
+    repo: shovikghosh/tourny
+  build_command: mvn clean package -DskipTests
+  run_command: java -jar target/table-tennis-tournament-0.0.1-SNAPSHOT.jar
+  envs:
+  - key: SPRING_DATASOURCE_URL
+    value: ${db.DATABASE_URL}
+  - key: SPRING_DATASOURCE_USERNAME
+    value: ${db.USERNAME}
+  - key: SPRING_DATASOURCE_PASSWORD
+    value: ${db.PASSWORD}
+  - key: SPRING_JPA_HIBERNATE_DDL_AUTO
+    value: update
+  - key: SPRING_JPA_SHOW_SQL
+    value: false
+databases:
+- engine: PG
+  name: tourny-db
+  production: false
+  version: "14" 
