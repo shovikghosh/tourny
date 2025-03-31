@@ -8,7 +8,7 @@ services:
     # Optional: If your backend code is not in the root directory, add source_dir
     # source_dir: path/to/your/backend/code
     source_dir: backend
-    dockerfile_path: Dockerfile
+    dockerfile_path: backend/Dockerfile
     # Add health checks if you have Spring Boot Actuator configured
     # health_check:
     #   http_path: /actuator/health
