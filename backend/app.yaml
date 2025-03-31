@@ -5,28 +5,26 @@ services:
       branch: main
       deploy_on_push: true
       repo: shovikghosh/tourny
-      source_dir: backend
     # Optional: If your backend code is not in the root directory, add source_dir
     # source_dir: path/to/your/backend/code
-    build_command: mvn clean package -DskipTests
-    run_command: java -jar target/table-tennis-tournament-0.0.1-SNAPSHOT.jar
-    http_port: 8080
+    source_dir: backend
+    dockerfile_path: Dockerfile
     # Add health checks if you have Spring Boot Actuator configured
     # health_check:
     #   http_path: /actuator/health
     envs:
       # Corrected database references
       - key: SPRING_DATASOURCE_URL
-        value: ${tourny-db.DATABASE_URL}
+        value: ${db.DATABASE_URL}
       - key: SPRING_DATASOURCE_USERNAME
-        value: ${tourny-db.USERNAME}
+        value: ${db.USERNAME}
       - key: SPRING_DATASOURCE_PASSWORD
-        value: ${tourny-db.PASSWORD}
+        value: ${db.PASSWORD}
       # Other env variables
       - key: SPRING_JPA_HIBERNATE_DDL_AUTO
         value: update
       - key: SPRING_JPA_SHOW_SQL
-        value: "false" # <-- CORRECTED: Put boolean value in quotes
+        value: false
     # Optional: Specify instance size and count
     # instance_size_slug: basic-xs
     # instance_count: 1
