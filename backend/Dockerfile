@@ -18,5 +18,11 @@ WORKDIR /
 COPY --from=build /target/*.jar app.jar
 # Expose the port Spring Boot runs on (default 8080)
 EXPOSE 8080
+# Set default environment variables
+ENV SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/tourny \
+    SPRING_DATASOURCE_USERNAME=postgres \
+    SPRING_DATASOURCE_PASSWORD=postgres \
+    SPRING_JPA_HIBERNATE_DDL_AUTO=update \
+    SPRING_JPA_SHOW_SQL=false
 # Run the application
 ENTRYPOINT ["java", "-jar", "app.jar"]
