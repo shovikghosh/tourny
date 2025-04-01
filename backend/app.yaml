@@ -12,21 +12,6 @@ services:
     # Add health checks if you have Spring Boot Actuator configured
     # health_check:
     #   http_path: /actuator/health
-    envs:
-      # Corrected database references
-      - key: SPRING_DATASOURCE_URL
-        value: ${db.DATABASE_URL}
-      - key: SPRING_DATASOURCE_USERNAME
-        value: ${db.USERNAME}
-      - key: SPRING_DATASOURCE_PASSWORD
-        value: ${db.PASSWORD}
-      # Other env variables
-      - key: SPRING_JPA_HIBERNATE_DDL_AUTO
-        value: update
-      - key: SPRING_JPA_SHOW_SQL
-        value: "false"
-      - key: SERVER_PORT
-        value: "8080"
     # Optional: Specify instance size and count
     # instance_size_slug: basic-xs
     # instance_count: 1
