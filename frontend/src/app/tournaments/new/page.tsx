@@ -47,9 +47,9 @@ export default function NewTournamentPage() {
 
     const formData = new FormData(e.currentTarget)
     const tournamentData = {
-      name: formData.get('name'),
-      startDate: formData.get('startDate'),
-      endDate: formData.get('endDate'),
+      name: formData.get('name') as string,
+      startDate: formData.get('startDate') as string,
+      endDate: formData.get('endDate') as string,
       playerIds: selectedPlayers
     }
 

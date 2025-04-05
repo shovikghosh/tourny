@@ -4,6 +4,7 @@ import com.tournament.model.*;
 import com.tournament.service.PlayerService;
 import com.tournament.service.TournamentService;
 import com.tournament.dto.CreateMatchRequest;
+import com.tournament.dto.CreateTournamentRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -147,5 +150,100 @@ public class TournamentIntegrationTest {
         assertEquals("Test Player", savedPlayer.getName());
         assertEquals(newPlayer.getEmail(), savedPlayer.getEmail());
         assertEquals(5, savedPlayer.getRank());
+    }
+    
+    @Test
+    void testCreateTournamentWithDTO() {
+        // Create tournament request DTO
+        CreateTournamentRequest request = new CreateTournamentRequest();
+        request.setName("DTO Tournament Test");
+        request.setStartDate(LocalDate.now());
+        request.setEndDate(LocalDate.now().plusDays(10));
+        request.setPlayerIds(Arrays.asList(player1.getId(), player2.getId()));
+        
+        // Create tournament using the DTO
+        Tournament createdTournament = tournamentService.createTournament(request);
+        
+        // Verify tournament was created correctly
+        assertNotNull(createdTournament);
+        assertNotNull(createdTournament.getId());
+        assertEquals("DTO Tournament Test", createdTournament.getName());
+        assertEquals(LocalDate.now(), createdTournament.getStartDate());
+        assertEquals(LocalDate.now().plusDays(10), createdTournament.getEndDate());
+        assertEquals(TournamentStatus.PENDING, createdTournament.getStatus());
+        
+        // Verify players were added correctly
+        assertEquals(2, createdTournament.getPlayers().size());
+        assertTrue(createdTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player1.getId())));
+        assertTrue(createdTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player2.getId())));
+    }
+    
+    @Test
+    void testAddPlayersToTournament() {
+        // Create a tournament with no players initially
+        Tournament emptyTournament = new Tournament();
+        emptyTournament.setName("Empty Tournament");
+        emptyTournament.setStartDate(LocalDate.now());
+        emptyTournament.setEndDate(LocalDate.now().plusDays(5));
+        emptyTournament = tournamentService.createTournament(emptyTournament);
+        
+        // Verify no players initially
+        assertEquals(0, emptyTournament.getPlayers().size());
+        
+        // Add players to tournament
+        Tournament updatedTournament = tournamentService.addPlayersToTournament(
+            emptyTournament.getId(), 
+            Arrays.asList(player1.getId(), player3.getId(), player4.getId())
+        );
+        
+        // Verify players were added
+        assertNotNull(updatedTournament);
+        assertEquals(3, updatedTournament.getPlayers().size());
+        assertTrue(updatedTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player1.getId())));
+        assertTrue(updatedTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player3.getId())));
+        assertTrue(updatedTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player4.getId())));
+        
+        // Add one more player
+        updatedTournament = tournamentService.addPlayersToTournament(
+            emptyTournament.getId(), 
+            Collections.singletonList(player2.getId())
+        );
+        
+        // Verify the additional player was added (should now have all 4)
+        assertEquals(4, updatedTournament.getPlayers().size());
+        assertTrue(updatedTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player2.getId())));
+    }
+    
+    @Test
+    void testAddDuplicatePlayersToTournament() {
+        // Create tournament with player1 already added
+        Tournament tournament = new Tournament();
+        tournament.setName("Duplicate Test Tournament");
+        tournament.setStartDate(LocalDate.now());
+        tournament.setEndDate(LocalDate.now().plusDays(5));
+        tournament.addPlayer(player1);
+        tournament = tournamentService.createTournament(tournament);
+        
+        // Initial count should be 1
+        assertEquals(1, tournament.getPlayers().size());
+        
+        // Try to add player1 again along with player2
+        Tournament updatedTournament = tournamentService.addPlayersToTournament(
+            tournament.getId(),
+            Arrays.asList(player1.getId(), player2.getId())
+        );
+        
+        // Should only have added player2 (no duplicates)
+        assertEquals(2, updatedTournament.getPlayers().size());
+        assertTrue(updatedTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player1.getId())));
+        assertTrue(updatedTournament.getPlayers().stream()
+            .anyMatch(p -> p.getId().equals(player2.getId())));
     }
 } 
