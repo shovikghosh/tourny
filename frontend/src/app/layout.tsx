@@ -27,8 +27,8 @@ export default function RootLayout({
                 <div className="flex items-center justify-between h-20">
                   <div className="flex items-center">
                     <Link href="/" className="flex shrink-0 items-center">
-                      <div className="wtt-gradient h-10 w-10 rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-xl">T</span>
+                      <div className="bg-card border border-border h-10 w-10 rounded-full flex items-center justify-center">
+                        <span className="text-primary font-bold text-xl">T</span>
                       </div>
                       <span className="ml-3 text-2xl font-bold text-white hover:text-primary transition-colors">
                         TOURNY

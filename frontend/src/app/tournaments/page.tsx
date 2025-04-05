@@ -112,7 +112,7 @@ export default function TournamentsPage() {
                   </div>
                 </div>
               </div>
-              <div className="h-1 w-full bg-gradient-to-r from-primary to-secondary"></div>
+              <div className="h-1 w-full bg-card border-t border-border opacity-70"></div>
             </Link>
           ))}
         </div>

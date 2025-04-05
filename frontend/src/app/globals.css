@@ -6,9 +6,9 @@
   :root {
     --background: 222 47% 11%;
     --foreground: 0 0% 100%;
-    --primary: 0 100% 50%;
-    --secondary: 217 91% 60%;
-    --accent: 30 100% 50%;
+    --primary: 0 70% 45%;
+    --secondary: 217 70% 50%;
+    --accent: 30 80% 45%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
     --border: 217 33% 17%;
@@ -46,7 +46,7 @@
 /* WTT-specific components */
 @layer components {
   .wtt-button {
-    @apply inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+    @apply inline-flex items-center rounded-md border border-primary bg-primary/20 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
   
   .wtt-card {
@@ -66,11 +66,11 @@
   }
   
   .wtt-status-badge-in-progress {
-    @apply bg-secondary text-white;
+    @apply bg-secondary/30 text-secondary/90;
   }
   
   .wtt-status-badge-completed {
-    @apply bg-green-600 text-white;
+    @apply bg-green-600/30 text-green-400;
   }
   
   /* Form elements for dark theme */
