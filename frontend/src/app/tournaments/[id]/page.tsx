@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import { api } from '@/services/api'
 import { Tournament, Match } from '@/types/match'
 import MatchScore from '@/components/MatchScore'
+import Link from 'next/link'
 
 export default function TournamentPage() {
   const params = useParams()
@@ -59,40 +60,52 @@ export default function TournamentPage() {
       </div>
 
       <div>
-        <h2 className="text-xl font-semibold mb-4">Matches</h2>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">Matches</h2>
+          <Link
+            href={`/tournaments/${tournament.id}/matches/new`}
+            className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            Add Match
+          </Link>
+        </div>
         <div className="grid gap-6">
-          {tournament.matches.map((match: Match) => (
-            <div key={match.id} className="border rounded-lg p-4">
-              <div className="flex justify-between items-center mb-4">
-                <div>
-                  <h3 className="font-semibold">Round {match.round}</h3>
-                  <p className="text-gray-600">
-                    {match.player1.name} vs {match.player2.name}
+          {tournament.matches.length === 0 ? (
+            <p className="text-gray-500 italic">No matches have been created yet.</p>
+          ) : (
+            tournament.matches.map((match: Match) => (
+              <div key={match.id} className="border rounded-lg p-4">
+                <div className="flex justify-between items-center mb-4">
+                  <div>
+                    <h3 className="font-semibold">Round {match.round}</h3>
+                    <p className="text-gray-600">
+                      {match.player1.name} vs {match.player2.name}
+                    </p>
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    Status: {match.status}
+                  </div>
+                </div>
+
+                <MatchScore
+                  match={match}
+                  tournamentId={tournament.id}
+                  onScoreUpdate={handleMatchScoreUpdate}
+                />
+
+                {match.venue && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Venue: {match.venue}
                   </p>
-                </div>
-                <div className="text-sm text-gray-500">
-                  Status: {match.status}
-                </div>
+                )}
+                {match.notes && (
+                  <p className="mt-2 text-sm text-gray-600">
+                    Notes: {match.notes}
+                  </p>
+                )}
               </div>
-
-              <MatchScore
-                match={match}
-                tournamentId={tournament.id}
-                onScoreUpdate={handleMatchScoreUpdate}
-              />
-
-              {match.venue && (
-                <p className="mt-2 text-sm text-gray-600">
-                  Venue: {match.venue}
-                </p>
-              )}
-              {match.notes && (
-                <p className="mt-2 text-sm text-gray-600">
-                  Notes: {match.notes}
-                </p>
-              )}
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>
