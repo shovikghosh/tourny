@@ -120,23 +120,43 @@ public class TournamentService {
     public void updateMatchScore(Long tournamentId, Long matchId, MatchScore score) {
         Match match = getMatch(tournamentId, matchId);
         
-        // Ensure the match has the required number of sets before updating scores
-        if (score.getSets() != null && !score.getSets().isEmpty()) {
-            // Create sets in the match score if they don't exist
-            while (match.getScore().getSets().size() < score.getSets().size()) {
-                match.getScore().addSet();
-            }
-        }
+        // Ensure the match has all required sets
+        ensureMatchHasRequiredSets(match, score);
         
+        // Update the match score
         match.setScore(score);
         
-        // Calculate match winner
+        // Calculate and update match winner
         score.updateWinner();
         
-        // If there's a winner, mark the match as COMPLETED, otherwise IN_PROGRESS
-        if (score.getWinner() != null) {
+        // Update match status based on score progress
+        updateMatchStatus(match, score);
+    }
+    
+    /**
+     * Ensure the match has all the required sets before updating scores
+     */
+    private void ensureMatchHasRequiredSets(Match match, MatchScore score) {
+        if (score.getSets() == null || score.getSets().isEmpty()) {
+            return;
+        }
+        
+        // Create sets in the match score if needed
+        int neededSets = score.getSets().size();
+        while (match.getScore().getSets().size() < neededSets) {
+            match.getScore().addSet();
+        }
+    }
+    
+    /**
+     * Update the match status based on score progress
+     */
+    private void updateMatchStatus(Match match, MatchScore score) {
+        if (score.getWinnerSide() != null) {
+            // Match has a winner, mark as completed
             match.setStatus(MatchStatus.COMPLETED);
-        } else if (match.getStatus() == MatchStatus.PENDING) {
+        } else if (match.getStatus() == MatchStatus.PENDING && !score.getSets().isEmpty()) {
+            // Match has started but no winner yet
             match.setStatus(MatchStatus.IN_PROGRESS);
         }
     }

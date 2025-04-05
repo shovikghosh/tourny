@@ -136,8 +136,40 @@ public class TournamentIntegrationTest {
         assertEquals(9, updatedMatch.getScore().getSet(2).getPlayer1Score());
         assertEquals(11, updatedMatch.getScore().getSet(2).getPlayer2Score());
         
-        // Verify winner calculation
-        assertEquals("player1", updatedMatch.getScore().getWinner());
+        // Verify match winner calculation
+        assertEquals(2, updatedMatch.getScore().getPlayer1SetsWon());
+        assertEquals(1, updatedMatch.getScore().getPlayer2SetsWon());
+        assertEquals(PlayerSide.PLAYER1.toString(), updatedMatch.getScore().getWinner());
+        assertEquals(PlayerSide.PLAYER1, updatedMatch.getScore().getWinnerSide());
+    }
+
+    @Test
+    void testMatchInProgressStatus() {
+        // Create match request
+        CreateMatchRequest request = new CreateMatchRequest();
+        request.setPlayer1Id(player1.getId());
+        request.setPlayer2Id(player2.getId());
+        request.setRound(1);
+        request.setScheduledTime(LocalDateTime.now().plusHours(1));
+        
+        // Create match
+        Match match = tournamentService.createMatch(tournament.getId(), request);
+        assertEquals(MatchStatus.PENDING, match.getStatus());
+        
+        // Update with a partial score (not enough to determine winner)
+        MatchScore score = new MatchScore();
+        // Set total sets to 3 to make it a best-of-3 match
+        score.setTotalSets(3);
+        score.addSet();
+        score.getSet(0).setPlayer1Score(11);
+        score.getSet(0).setPlayer2Score(9);
+        
+        tournamentService.updateMatchScore(tournament.getId(), match.getId(), score);
+        
+        // Verify match is now in progress
+        Match updatedMatch = tournamentService.getMatch(tournament.getId(), match.getId());
+        assertEquals(MatchStatus.IN_PROGRESS, updatedMatch.getStatus());
+        assertNull(updatedMatch.getScore().getWinner());
     }
 
     @Test

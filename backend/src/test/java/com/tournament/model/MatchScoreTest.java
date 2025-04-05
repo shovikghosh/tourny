@@ -121,12 +121,12 @@ public class MatchScoreTest {
         // Player 1 wins
         set.setPlayer1Score(11);
         set.setPlayer2Score(5);
-        assertEquals("player1", set.getWinner());
+        assertEquals(PlayerSide.PLAYER1, set.getWinner());
         
         // Player 2 wins
         set.setPlayer1Score(9);
         set.setPlayer2Score(11);
-        assertEquals("player2", set.getWinner());
+        assertEquals(PlayerSide.PLAYER2, set.getWinner());
         
         // No winner when difference is less than 2
         set.setPlayer1Score(11);
@@ -136,7 +136,7 @@ public class MatchScoreTest {
         // Player 2 wins with larger scores
         set.setPlayer1Score(14);
         set.setPlayer2Score(16);
-        assertEquals("player2", set.getWinner());
+        assertEquals(PlayerSide.PLAYER2, set.getWinner());
     }
     
     @Test
@@ -161,11 +161,12 @@ public class MatchScoreTest {
         score.getSet(3).setPlayer2Score(7);
         
         // Now player 1 should be the winner
-        assertEquals("player1", score.calculateWinner());
+        assertEquals(PlayerSide.PLAYER1, score.calculateWinner());
         
         // Update winner field
         score.updateWinner();
-        assertEquals("player1", score.getWinner());
+        assertEquals(PlayerSide.PLAYER1.toString(), score.getWinner());
+        assertEquals(PlayerSide.PLAYER1, score.getWinnerSide());
     }
     
     @Test
@@ -180,9 +181,23 @@ public class MatchScoreTest {
         score.getSet(1).setPlayer2Score(11);
         
         // Player 2 should be the winner (best of 3)
-        assertEquals("player2", score.calculateWinner());
+        assertEquals(PlayerSide.PLAYER2, score.calculateWinner());
         
         score.updateWinner();
-        assertEquals("player2", score.getWinner());
+        assertEquals(PlayerSide.PLAYER2.toString(), score.getWinner());
+        assertEquals(PlayerSide.PLAYER2, score.getWinnerSide());
+    }
+    
+    @Test
+    void testPlayerSideConversion() {
+        // Test converting string to PlayerSide
+        assertEquals(PlayerSide.PLAYER1, PlayerSide.fromString("player1"));
+        assertEquals(PlayerSide.PLAYER2, PlayerSide.fromString("player2"));
+        assertNull(PlayerSide.fromString(null));
+        assertNull(PlayerSide.fromString("invalid"));
+        
+        // Test converting PlayerSide to string
+        assertEquals("player1", PlayerSide.PLAYER1.toString());
+        assertEquals("player2", PlayerSide.PLAYER2.toString());
     }
 } 
