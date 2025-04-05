@@ -9,7 +9,7 @@ services:
   build_command: npm run build
   run_command: npm start
   envs:
-  - key: API_BASE_URL
+  - key: NEXT_PUBLIC_API_BASE_URL
     value: ${tourny-backend.URL}/api
   - key: NODE_ENV
     value: "production" 
