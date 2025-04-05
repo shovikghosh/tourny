@@ -72,4 +72,33 @@
   .wtt-status-badge-completed {
     @apply bg-green-600 text-white;
   }
+  
+  /* Form elements for dark theme */
+  .wtt-form-container {
+    @apply wtt-card p-6 space-y-6;
+  }
+  
+  .wtt-input {
+    @apply block w-full rounded-md bg-muted border-border text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
+  
+  .wtt-select {
+    @apply block w-full rounded-md bg-muted border-border text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
+  
+  .wtt-textarea {
+    @apply block w-full rounded-md bg-muted border-border text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
+  }
+  
+  .wtt-label {
+    @apply block text-sm font-medium text-white mb-1;
+  }
+  
+  .wtt-checkbox {
+    @apply h-4 w-4 rounded border-border text-primary focus:ring-primary/50 bg-muted;
+  }
+  
+  .wtt-helper-text {
+    @apply mt-1 text-xs text-muted-foreground;
+  }
 } 

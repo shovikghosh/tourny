@@ -41,9 +41,9 @@ export default function NewPlayerPage() {
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">New Player</h1>
-          <p className="mt-2 text-sm text-gray-700">
-            Add a new player to the system.
+          <h1 className="text-white text-2xl font-semibold">New Player</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create a new player by filling out the form below.
           </p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
@@ -57,11 +57,11 @@ export default function NewPlayerPage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-900/20 border border-red-800 p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
+              <h3 className="text-sm font-medium text-red-500">Error</h3>
+              <div className="mt-2 text-sm text-red-400">
                 <p>{error}</p>
               </div>
             </div>
@@ -69,9 +69,9 @@ export default function NewPlayerPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow sm:rounded-lg p-6">
+      <form onSubmit={handleSubmit} className="wtt-form-container">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="wtt-label">
             Name *
           </label>
           <div className="mt-1">
@@ -80,13 +80,13 @@ export default function NewPlayerPage() {
               name="name"
               id="name"
               required
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="email" className="wtt-label">
             Email *
           </label>
           <div className="mt-1">
@@ -95,14 +95,14 @@ export default function NewPlayerPage() {
               name="email"
               id="email"
               required
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
-          <p className="mt-1 text-xs text-gray-500">Must be unique in the system.</p>
+          <p className="wtt-helper-text">Must be unique in the system.</p>
         </div>
 
         <div>
-          <label htmlFor="rank" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="rank" className="wtt-label">
             Rank
           </label>
           <div className="mt-1">
@@ -111,10 +111,10 @@ export default function NewPlayerPage() {
               name="rank"
               id="rank"
               min="1"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
-          <p className="mt-1 text-xs text-gray-500">Lower numbers indicate higher ranks (1 is highest).</p>
+          <p className="wtt-helper-text">Lower numbers indicate higher ranks (1 is highest).</p>
         </div>
 
         <div className="relative flex items-start">
@@ -124,14 +124,14 @@ export default function NewPlayerPage() {
               name="active"
               type="checkbox"
               defaultChecked
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="wtt-checkbox"
             />
           </div>
           <div className="ml-3 text-sm">
-            <label htmlFor="active" className="font-medium text-gray-700">
+            <label htmlFor="active" className="text-white font-medium">
               Active
             </label>
-            <p className="text-gray-500">Determines if the player is eligible for new tournaments.</p>
+            <p className="text-muted-foreground">Determines if the player is eligible for new tournaments.</p>
           </div>
         </div>
 
@@ -139,7 +139,7 @@ export default function NewPlayerPage() {
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="wtt-button"
           >
             {loading ? 'Adding...' : 'Add Player'}
           </button>

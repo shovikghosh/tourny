@@ -96,11 +96,11 @@ export default function NewMatchPage() {
 
   if (error && !tournament) {
     return (
-      <div className="rounded-md bg-red-50 p-4">
+      <div className="rounded-md bg-red-900/20 border border-red-800 p-4">
         <div className="flex">
           <div className="ml-3">
-            <h3 className="text-sm font-medium text-red-800">Error</h3>
-            <div className="mt-2 text-sm text-red-700">
+            <h3 className="text-sm font-medium text-red-500">Error</h3>
+            <div className="mt-2 text-sm text-red-400">
               <p>{error}</p>
             </div>
           </div>
@@ -133,11 +133,11 @@ export default function NewMatchPage() {
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-900/20 border border-red-800 p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
+              <h3 className="text-sm font-medium text-red-500">Error</h3>
+              <div className="mt-2 text-sm text-red-400">
                 <p>{error}</p>
               </div>
             </div>
@@ -145,7 +145,7 @@ export default function NewMatchPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow sm:rounded-lg p-6">
+      <form onSubmit={handleSubmit} className="wtt-form-container">
         {tournament.players.length > 0 && allPlayers.length > tournament.players.length && (
           <div className="flex items-center mb-4">
             <input
@@ -154,9 +154,9 @@ export default function NewMatchPage() {
               type="checkbox"
               checked={showAllPlayers}
               onChange={toggleShowAllPlayers}
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+              className="wtt-checkbox"
             />
-            <label htmlFor="showAllPlayers" className="ml-2 block text-sm text-gray-700">
+            <label htmlFor="showAllPlayers" className="ml-2 block text-sm text-white">
               Show all players (including those not in this tournament)
             </label>
           </div>
@@ -164,7 +164,7 @@ export default function NewMatchPage() {
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
-            <label htmlFor="player1Id" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="player1Id" className="wtt-label">
               Player 1
             </label>
             <div className="mt-1">
@@ -172,7 +172,7 @@ export default function NewMatchPage() {
                 id="player1Id"
                 name="player1Id"
                 required
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="wtt-select"
               >
                 <option value="">Select Player 1</option>
                 {playersToShow.length === 0 ? (
@@ -199,7 +199,7 @@ export default function NewMatchPage() {
           </div>
 
           <div>
-            <label htmlFor="player2Id" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="player2Id" className="wtt-label">
               Player 2
             </label>
             <div className="mt-1">
@@ -207,7 +207,7 @@ export default function NewMatchPage() {
                 id="player2Id"
                 name="player2Id"
                 required
-                className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                className="wtt-select"
               >
                 <option value="">Select Player 2</option>
                 {playersToShow.length === 0 ? (
@@ -225,7 +225,7 @@ export default function NewMatchPage() {
         </div>
 
         <div>
-          <label htmlFor="round" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="round" className="wtt-label">
             Round
           </label>
           <div className="mt-1">
@@ -235,13 +235,13 @@ export default function NewMatchPage() {
               id="round"
               required
               min="1"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="scheduledTime" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="scheduledTime" className="wtt-label">
             Scheduled Time (optional)
           </label>
           <div className="mt-1">
@@ -249,13 +249,13 @@ export default function NewMatchPage() {
               type="datetime-local"
               name="scheduledTime"
               id="scheduledTime"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="venue" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="venue" className="wtt-label">
             Venue (optional)
           </label>
           <div className="mt-1">
@@ -263,13 +263,13 @@ export default function NewMatchPage() {
               type="text"
               name="venue"
               id="venue"
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="notes" className="wtt-label">
             Notes (optional)
           </label>
           <div className="mt-1">
@@ -277,7 +277,7 @@ export default function NewMatchPage() {
               name="notes"
               id="notes"
               rows={3}
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-textarea"
             />
           </div>
         </div>
@@ -286,7 +286,7 @@ export default function NewMatchPage() {
           <button
             type="submit"
             disabled={submitLoading}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="wtt-button"
           >
             {submitLoading ? 'Creating...' : 'Create Match'}
           </button>

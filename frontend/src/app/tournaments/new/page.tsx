@@ -70,19 +70,19 @@ export default function NewTournamentPage() {
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-2xl font-semibold text-gray-900">New Tournament</h1>
-          <p className="mt-2 text-sm text-gray-700">
+          <h1 className="text-white text-2xl font-semibold">New Tournament</h1>
+          <p className="mt-2 text-sm text-muted-foreground">
             Create a new tournament by filling out the form below.
           </p>
         </div>
       </div>
 
       {error && (
-        <div className="rounded-md bg-red-50 p-4">
+        <div className="rounded-md bg-red-900/20 border border-red-800 p-4">
           <div className="flex">
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">Error</h3>
-              <div className="mt-2 text-sm text-red-700">
+              <h3 className="text-sm font-medium text-red-500">Error</h3>
+              <div className="mt-2 text-sm text-red-400">
                 <p>{error}</p>
               </div>
             </div>
@@ -90,9 +90,9 @@ export default function NewTournamentPage() {
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow sm:rounded-lg p-6">
+      <form onSubmit={handleSubmit} className="wtt-form-container">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="name" className="wtt-label">
             Tournament Name
           </label>
           <div className="mt-1">
@@ -101,13 +101,13 @@ export default function NewTournamentPage() {
               name="name"
               id="name"
               required
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="startDate" className="wtt-label">
             Start Date
           </label>
           <div className="mt-1">
@@ -116,13 +116,13 @@ export default function NewTournamentPage() {
               name="startDate"
               id="startDate"
               required
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-gray-700">
+          <label htmlFor="endDate" className="wtt-label">
             End Date
           </label>
           <div className="mt-1">
@@ -131,83 +131,75 @@ export default function NewTournamentPage() {
               name="endDate"
               id="endDate"
               required
-              className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="wtt-input"
             />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between">
-            <label className="block text-sm font-medium text-gray-700">
+            <label className="wtt-label mb-0">
               Select Players
             </label>
             <Link
               href="/players/new"
-              className="text-sm text-indigo-600 hover:text-indigo-900"
+              className="text-sm text-primary hover:text-primary/90"
               target="_blank"
             >
               + Add New Player
             </Link>
           </div>
-          
-          <div className="mt-2">
-            {loadingPlayers ? (
-              <div className="text-center p-4">
-                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600 mx-auto"></div>
-                <p className="mt-2 text-sm text-gray-500">Loading players...</p>
-              </div>
-            ) : players.length === 0 ? (
-              <div className="text-center p-4 border rounded-md border-gray-200">
-                <p className="text-sm text-gray-500">No players available. Please add players first.</p>
-              </div>
-            ) : (
-              <div className="mt-1 max-h-56 overflow-y-auto border rounded-md border-gray-300 p-2">
-                <div className="space-y-2">
-                  {players.map(player => (
-                    <div 
-                      key={player.id} 
-                      className="relative flex items-start p-2 hover:bg-gray-50 rounded cursor-pointer"
-                      onClick={() => handlePlayerToggle(player.id)}
-                    >
-                      <div className="flex h-5 items-center">
-                        <input
-                          type="checkbox"
-                          checked={selectedPlayers.includes(player.id)}
-                          onChange={() => {}} // Handled by the div's onClick
-                          className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                        />
-                      </div>
-                      <div className="ml-3 flex-grow">
-                        <label className="font-medium text-gray-700 cursor-pointer">
-                          {player.name}
-                        </label>
-                        <p className="text-xs text-gray-500">{player.email}</p>
-                      </div>
-                      {player.rank && (
-                        <div className="ml-2">
-                          <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                            Rank: {player.rank}
-                          </span>
-                        </div>
-                      )}
+
+          {loadingPlayers ? (
+            <div className="mt-2 flex justify-center">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+            </div>
+          ) : players.length === 0 ? (
+            <div className="mt-2 text-center p-4 border rounded-md border-border bg-muted">
+              <p className="text-sm text-muted-foreground">No players available. Create players first.</p>
+            </div>
+          ) : (
+            <div className="mt-2 max-h-56 overflow-y-auto border rounded-md border-border bg-muted p-2">
+              <div className="space-y-2">
+                {players.map(player => (
+                  <div 
+                    key={player.id} 
+                    className="relative flex items-start p-2 hover:bg-card rounded cursor-pointer"
+                    onClick={() => handlePlayerToggle(player.id)}
+                  >
+                    <div className="flex h-5 items-center">
+                      <input
+                        type="checkbox"
+                        checked={selectedPlayers.includes(player.id)}
+                        onChange={() => {}} // Handled by the div's onClick
+                        className="wtt-checkbox"
+                      />
                     </div>
-                  ))}
-                </div>
+                    <div className="ml-3 flex-grow">
+                      <label className="text-white font-medium cursor-pointer">
+                        {player.name}
+                      </label>
+                      <p className="text-xs text-muted-foreground">{player.email}</p>
+                    </div>
+                    {player.rank && (
+                      <div className="ml-2">
+                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/20 text-primary">
+                          Rank: {player.rank}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            )}
-            {players.length > 0 && (
-              <p className="mt-1 text-xs text-gray-500">
-                Selected: {selectedPlayers.length} player{selectedPlayers.length !== 1 ? 's' : ''}
-              </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         <div className="flex justify-end">
           <button
             type="submit"
             disabled={loading}
-            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="wtt-button"
           >
             {loading ? 'Creating...' : 'Create Tournament'}
           </button>
