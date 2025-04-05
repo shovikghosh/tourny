@@ -4,11 +4,12 @@ services:
   github:
     branch: main
     deploy_on_push: true
-    repo: your-github-username/tourny
+    repo: shovikghosh/tourny
+  source_dir: frontend
   build_command: npm run build
   run_command: npm start
   envs:
   - key: API_BASE_URL
-    value: https://tourny-backend-xxxxx.ondigitalocean.app/api
+    value: ${tourny-backend.URL}/api
   - key: NODE_ENV
-    value: production 
+    value: "production" 
