@@ -16,6 +16,7 @@ export default function NewMatchPage() {
   const [error, setError] = useState<string | null>(null)
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [allPlayers, setAllPlayers] = useState<Player[]>([])
+  const [showAllPlayers, setShowAllPlayers] = useState(false)
   
   // Load tournament data
   useEffect(() => {
@@ -29,13 +30,10 @@ export default function NewMatchPage() {
         console.log('Tournament players:', data.players)
         setTournament(data)
         
-        // If tournament doesn't have players, fetch all players as a fallback
-        if (!data.players || data.players.length === 0) {
-          console.log('No players in tournament, fetching all players as fallback')
-          const allPlayersData = await api.getPlayers()
-          console.log('All players:', allPlayersData)
-          setAllPlayers(allPlayersData)
-        }
+        // Fetch all players regardless, so we have them available if user toggles the checkbox
+        const allPlayersData = await api.getPlayers()
+        console.log('All players:', allPlayersData)
+        setAllPlayers(allPlayersData)
       } catch (err) {
         console.error('Error fetching tournament:', err)
         setError(err instanceof Error ? err.message : 'Failed to load tournament')
@@ -78,8 +76,15 @@ export default function NewMatchPage() {
     }
   }
 
-  // Use tournament players if available, otherwise use all players
-  const playersToShow = tournament?.players?.length ? tournament.players : allPlayers
+  // Decide which players to show based on checkbox state
+  const playersToShow = showAllPlayers 
+    ? allPlayers 
+    : (tournament?.players?.length ? tournament.players : allPlayers)
+
+  // Function to toggle showing all players
+  const toggleShowAllPlayers = () => {
+    setShowAllPlayers(!showAllPlayers)
+  }
 
   if (loading) {
     return (
@@ -141,6 +146,22 @@ export default function NewMatchPage() {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6 bg-white shadow sm:rounded-lg p-6">
+        {tournament.players.length > 0 && allPlayers.length > tournament.players.length && (
+          <div className="flex items-center mb-4">
+            <input
+              id="showAllPlayers"
+              name="showAllPlayers"
+              type="checkbox"
+              checked={showAllPlayers}
+              onChange={toggleShowAllPlayers}
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            />
+            <label htmlFor="showAllPlayers" className="ml-2 block text-sm text-gray-700">
+              Show all players (including those not in this tournament)
+            </label>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div>
             <label htmlFor="player1Id" className="block text-sm font-medium text-gray-700">
@@ -159,7 +180,7 @@ export default function NewMatchPage() {
                 ) : (
                   playersToShow.map((player: Player) => (
                     <option key={`p1-${player.id}`} value={player.id}>
-                      {player.name}
+                      {player.name} {!tournament.players.some(p => p.id === player.id) && "⭐"}
                     </option>
                   ))
                 )}
@@ -171,6 +192,9 @@ export default function NewMatchPage() {
                   Add players first
                 </Link>
               </p>
+            )}
+            {showAllPlayers && (
+              <p className="mt-1 text-xs text-gray-500">⭐ indicates players not in this tournament</p>
             )}
           </div>
 
@@ -191,7 +215,7 @@ export default function NewMatchPage() {
                 ) : (
                   playersToShow.map((player: Player) => (
                     <option key={`p2-${player.id}`} value={player.id}>
-                      {player.name}
+                      {player.name} {!tournament.players.some(p => p.id === player.id) && "⭐"}
                     </option>
                   ))
                 )}
