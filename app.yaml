@@ -1,0 +1,38 @@
+name: tourny
+services:
+  - name: frontend
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: shovikghosh/tourny
+    source_dir: frontend
+    build_command: npm ci && npm run build
+    run_command: npm start
+    envs:
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: ${backend.INTERNAL_URL}/api
+      - key: NODE_ENV
+        value: "production"
+    routes:
+      - path: /
+        preserve_path_prefix: false
+
+  - name: backend
+    github:
+      branch: main
+      deploy_on_push: true
+      repo: shovikghosh/tourny
+    source_dir: backend
+    dockerfile_path: backend/Dockerfile
+    # Add health checks if you have Spring Boot Actuator configured
+    # health_check:
+    #   http_path: /actuator/health
+    routes:
+      - path: /api
+        preserve_path_prefix: true
+
+databases:
+  - engine: PG
+    name: tourny-db
+    production: false # Set to true for production databases
+    version: "14" 
