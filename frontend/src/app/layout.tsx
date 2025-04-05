@@ -27,6 +27,14 @@ export default function RootLayout({
                     <div className="flex flex-shrink-0 items-center">
                       <span className="text-xl font-bold text-gray-900">Tourny</span>
                     </div>
+                    <div className="ml-6 flex space-x-8">
+                      <a href="/tournaments" className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                        Tournaments
+                      </a>
+                      <a href="/players" className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700">
+                        Players
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
