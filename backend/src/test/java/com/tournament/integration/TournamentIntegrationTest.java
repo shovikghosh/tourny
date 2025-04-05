@@ -98,28 +98,46 @@ public class TournamentIntegrationTest {
 
         // Create match
         Match match1 = tournamentService.createMatch(tournament.getId(), request);
+        
+        // Initially the status should be PENDING with no sets
+        assertEquals(MatchStatus.PENDING, match1.getStatus());
+        assertEquals(0, match1.getScore().getSets().size());
 
-        // Update match score
+        // Update match score - player1 wins 2 sets, player2 wins 1 set
         MatchScore score = new MatchScore();
+        // Add three sets
+        score.addSet();
+        score.addSet();
+        score.addSet();
+        
         score.getSet(0).setPlayer1Score(11);
         score.getSet(0).setPlayer2Score(9);
+        
         score.getSet(1).setPlayer1Score(11);
         score.getSet(1).setPlayer2Score(7);
-        score.getSet(2).setPlayer1Score(11);
-        score.getSet(2).setPlayer2Score(8);
+        
+        score.getSet(2).setPlayer1Score(9);
+        score.getSet(2).setPlayer2Score(11);
 
         tournamentService.updateMatchScore(tournament.getId(), match1.getId(), score);
 
         // Verify match was updated
         Match updatedMatch = tournamentService.getMatch(tournament.getId(), match1.getId());
         assertNotNull(updatedMatch);
+        
+        // Match should be COMPLETED since player1 won 2 out of 3 sets
         assertEquals(MatchStatus.COMPLETED, updatedMatch.getStatus());
+        
+        // Verify individual set scores
         assertEquals(11, updatedMatch.getScore().getSet(0).getPlayer1Score());
         assertEquals(9, updatedMatch.getScore().getSet(0).getPlayer2Score());
         assertEquals(11, updatedMatch.getScore().getSet(1).getPlayer1Score());
         assertEquals(7, updatedMatch.getScore().getSet(1).getPlayer2Score());
-        assertEquals(11, updatedMatch.getScore().getSet(2).getPlayer1Score());
-        assertEquals(8, updatedMatch.getScore().getSet(2).getPlayer2Score());
+        assertEquals(9, updatedMatch.getScore().getSet(2).getPlayer1Score());
+        assertEquals(11, updatedMatch.getScore().getSet(2).getPlayer2Score());
+        
+        // Verify winner calculation
+        assertEquals("player1", updatedMatch.getScore().getWinner());
     }
 
     @Test

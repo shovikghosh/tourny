@@ -97,7 +97,7 @@ public class TournamentService {
         Player player2 = playerRepository.findById(request.getPlayer2Id())
                 .orElseThrow(() -> new ResourceNotFoundException("Player 2 not found with id: " + request.getPlayer2Id()));
 
-        // Create a properly initialized MatchScore
+        // Create a properly initialized MatchScore with 0 sets
         MatchScore score = new MatchScore();
         
         Match match = Match.builder()
@@ -119,8 +119,26 @@ public class TournamentService {
     @Transactional
     public void updateMatchScore(Long tournamentId, Long matchId, MatchScore score) {
         Match match = getMatch(tournamentId, matchId);
+        
+        // Ensure the match has the required number of sets before updating scores
+        if (score.getSets() != null && !score.getSets().isEmpty()) {
+            // Create sets in the match score if they don't exist
+            while (match.getScore().getSets().size() < score.getSets().size()) {
+                match.getScore().addSet();
+            }
+        }
+        
         match.setScore(score);
-        match.setStatus(MatchStatus.COMPLETED);
+        
+        // Calculate match winner
+        score.updateWinner();
+        
+        // If there's a winner, mark the match as COMPLETED, otherwise IN_PROGRESS
+        if (score.getWinner() != null) {
+            match.setStatus(MatchStatus.COMPLETED);
+        } else if (match.getStatus() == MatchStatus.PENDING) {
+            match.setStatus(MatchStatus.IN_PROGRESS);
+        }
     }
 
     @Transactional
