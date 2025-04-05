@@ -4,8 +4,16 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --background: 222 47% 11%;
+    --foreground: 0 0% 100%;
+    --primary: 0 100% 50%;
+    --secondary: 217 91% 60%;
+    --accent: 30 100% 50%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --border: 217 33% 17%;
+    --card: 222 47% 15%;
+    --card-foreground: 0 0% 100%;
   }
 }
 
@@ -15,5 +23,53 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+  
+  /* WTT-like styling */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-bold;
+  }
+  
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl;
+  }
+  
+  h2 {
+    @apply text-3xl md:text-4xl;
+  }
+  
+  a {
+    @apply transition-colors duration-200;
+  }
+}
+
+/* WTT-specific components */
+@layer components {
+  .wtt-button {
+    @apply inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+  }
+  
+  .wtt-card {
+    @apply bg-card rounded-lg shadow-md overflow-hidden border border-border;
+  }
+  
+  .wtt-gradient {
+    @apply bg-gradient-to-r from-primary to-secondary;
+  }
+  
+  .wtt-status-badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  
+  .wtt-status-badge-pending {
+    @apply bg-muted text-muted-foreground;
+  }
+  
+  .wtt-status-badge-in-progress {
+    @apply bg-secondary text-white;
+  }
+  
+  .wtt-status-badge-completed {
+    @apply bg-green-600 text-white;
   }
 } 

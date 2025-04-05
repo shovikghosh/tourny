@@ -47,54 +47,90 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
     };
 
     return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                    <h3 className="font-semibold">{match.player1.name}</h3>
-                    <p className="text-2xl">{currentSet.player1Score}</p>
-                    <button
-                        onClick={() => handleScoreUpdate('player1')}
-                        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        disabled={match.status === 'COMPLETED'}
-                    >
-                        Add Point
-                    </button>
-                </div>
-                <div className="text-center">
-                    <h3 className="font-semibold">{match.player2.name}</h3>
-                    <p className="text-2xl">{currentSet.player2Score}</p>
-                    <button
-                        onClick={() => handleScoreUpdate('player2')}
-                        className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-                        disabled={match.status === 'COMPLETED'}
-                    >
-                        Add Point
-                    </button>
-                </div>
-            </div>
-
-            {/* Display completed sets */}
-            {match.score.sets.length > 0 && (
-                <div className="mt-4">
-                    <h3 className="font-semibold mb-2">Completed Sets:</h3>
-                    <div className="grid grid-cols-2 gap-4">
-                        {match.score.sets.map((set, index) => (
-                            <div key={index} className="text-center">
-                                <p className="font-medium">Set {index + 1}</p>
-                                <p>{set.player1Score} - {set.player2Score}</p>
-                                <p className="text-sm text-gray-600">
-                                    Winner: {set.winner === 'player1' ? match.player1.name : match.player2.name}
-                                </p>
+        <div className="space-y-6">
+            {/* Current set score */}
+            {(match.status === 'PENDING' || match.status === 'IN_PROGRESS') && (
+                <div className="bg-card border border-border rounded-lg p-4">
+                    <h4 className="text-white font-medium mb-4 text-center">Current Set</h4>
+                    <div className="grid grid-cols-2 gap-6">
+                        <div className="text-center">
+                            <div className="flex items-center justify-center mb-2">
+                                <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                    <span className="text-primary font-bold">P1</span>
+                                </div>
+                                <h3 className="font-semibold text-white ml-2">{match.player1.name}</h3>
                             </div>
-                        ))}
+                            <p className="text-4xl font-bold text-white">{currentSet.player1Score}</p>
+                            <button
+                                onClick={() => handleScoreUpdate('player1')}
+                                className="mt-3 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                                disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
+                            >
+                                Add Point
+                            </button>
+                        </div>
+                        
+                        <div className="text-center">
+                            <div className="flex items-center justify-center mb-2">
+                                <div className="h-8 w-8 rounded-full bg-secondary/20 flex items-center justify-center">
+                                    <span className="text-secondary font-bold">P2</span>
+                                </div>
+                                <h3 className="font-semibold text-white ml-2">{match.player2.name}</h3>
+                            </div>
+                            <p className="text-4xl font-bold text-white">{currentSet.player2Score}</p>
+                            <button
+                                onClick={() => handleScoreUpdate('player2')}
+                                className="mt-3 px-4 py-2 bg-secondary text-white rounded-md hover:bg-secondary/90 transition-colors"
+                                disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
+                            >
+                                Add Point
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}
 
-            {/* Display match winner if completed */}
+            {/* Completed sets */}
+            {match.score.sets.length > 0 && (
+                <div className="bg-card border border-border rounded-lg p-4">
+                    <h4 className="text-white font-medium mb-4">Completed Sets</h4>
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="border-b border-border">
+                                    <th className="py-2 px-4 text-left text-muted-foreground">Set</th>
+                                    <th className="py-2 px-4 text-center text-muted-foreground">{match.player1.name}</th>
+                                    <th className="py-2 px-4 text-center text-muted-foreground">{match.player2.name}</th>
+                                    <th className="py-2 px-4 text-right text-muted-foreground">Winner</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {match.score.sets.map((set, index) => (
+                                    <tr key={index} className="border-b border-border/50">
+                                        <td className="py-2 px-4 text-left text-muted-foreground">{index + 1}</td>
+                                        <td className="py-2 px-4 text-center text-white font-medium">{set.player1Score}</td>
+                                        <td className="py-2 px-4 text-center text-white font-medium">{set.player2Score}</td>
+                                        <td className="py-2 px-4 text-right">
+                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                set.winner === 'player1' 
+                                                    ? 'bg-primary/20 text-primary' 
+                                                    : 'bg-secondary/20 text-secondary'
+                                            }`}>
+                                                {set.winner === 'player1' ? match.player1.name : match.player2.name}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            )}
+
+            {/* Match winner */}
             {match.status === 'COMPLETED' && match.score.winner && (
-                <div className="mt-4 text-center">
-                    <h3 className="font-semibold text-lg">
+                <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-4 text-center">
+                    <h3 className="font-bold text-white text-xl">
                         Winner: {match.score.winner === 'player1' ? match.player1.name : match.player2.name}
                     </h3>
                 </div>
