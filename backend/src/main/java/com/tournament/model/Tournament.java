@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 @Entity
 @Data
@@ -49,25 +50,37 @@ public class Tournament {
     private List<Player> players = new ArrayList<>();
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "tournament_id")
     @Builder.Default
+    @JsonManagedReference
     private List<Match> matches = new ArrayList<>();
 
     public void addMatch(Match match) {
+        if (matches == null) {
+            matches = new ArrayList<>();
+        }
         matches.add(match);
     }
 
     public void removeMatch(Match match) {
-        matches.remove(match);
+        if (matches != null) {
+            matches.remove(match);
+        }
     }
 
     public void addPlayer(Player player) {
+        if (players == null) {
+            players = new ArrayList<>();
+        }
         if (!players.contains(player)) {
             players.add(player);
         }
     }
 
     public void removePlayer(Player player) {
-        players.remove(player);
+        if (players != null) {
+            players.remove(player);
+        }
     }
 
     @PrePersist

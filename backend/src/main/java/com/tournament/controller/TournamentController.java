@@ -7,6 +7,8 @@ import com.tournament.model.Tournament;
 import com.tournament.model.MatchScore;
 import java.util.List;
 import com.tournament.dto.CreateMatchRequest;
+import com.tournament.dto.CreateTournamentRequest;
+import com.tournament.dto.AddPlayersRequest;
 import com.tournament.model.Match;
 import org.springframework.http.ResponseEntity;
 
@@ -24,19 +26,29 @@ public class TournamentController {
     }
     
     @GetMapping("/{id}")
-    public Tournament getTournament(@PathVariable Long id) {
-        return tournamentService.getTournament(id);
+    public ResponseEntity<Tournament> getTournament(@PathVariable Long id) {
+        Tournament tournament = tournamentService.getTournament(id);
+        return ResponseEntity.ok(tournament);
     }
     
     @PostMapping
-    public Tournament createTournament(@RequestBody Tournament tournament) {
-        return tournamentService.createTournament(tournament);
+    public Tournament createTournament(@RequestBody CreateTournamentRequest request) {
+        return tournamentService.createTournament(request);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTournament(@PathVariable Long id) {
         tournamentService.deleteTournament(id);
         return ResponseEntity.ok().build();
+    }
+    
+    // Player-related endpoints
+    @PostMapping("/{tournamentId}/players")
+    public ResponseEntity<Tournament> addPlayersToTournament(
+            @PathVariable Long tournamentId,
+            @RequestBody AddPlayersRequest request) {
+        Tournament tournament = tournamentService.addPlayersToTournament(tournamentId, request.getPlayerIds());
+        return ResponseEntity.ok(tournament);
     }
     
     // Match-related endpoints

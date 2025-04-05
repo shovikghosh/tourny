@@ -1,10 +1,12 @@
 package com.tournament.service;
 
 import com.tournament.dto.CreateMatchRequest;
+import com.tournament.dto.CreateTournamentRequest;
 import com.tournament.exception.ResourceNotFoundException;
 import com.tournament.model.MatchScore;
 import com.tournament.model.MatchStatus;
 import com.tournament.model.Tournament;
+import com.tournament.model.TournamentStatus;
 import com.tournament.model.Match;
 import com.tournament.model.Player;
 import com.tournament.repository.TournamentRepository;
@@ -15,12 +17,17 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.ArrayList;
 
 @Service
 @RequiredArgsConstructor
 public class TournamentService {
     private final TournamentRepository tournamentRepository;
     private final PlayerRepository playerRepository;
+
+    public List<Tournament> getAllTournaments() {
+        return tournamentRepository.findAll();
+    }
 
     public Tournament getTournament(Long id) {
         return tournamentRepository.findById(id)
@@ -48,6 +55,34 @@ public class TournamentService {
     }
 
     @Transactional
+    public Tournament createTournament(CreateTournamentRequest request) {
+        Assert.notNull(request, "CreateTournamentRequest must not be null");
+        Assert.hasText(request.getName(), "Tournament name must not be empty");
+        Assert.notNull(request.getStartDate(), "Start date must not be null");
+        Assert.notNull(request.getEndDate(), "End date must not be null");
+        Assert.isTrue(!request.getEndDate().isBefore(request.getStartDate()), 
+            "End date must not be before start date");
+        
+        // Create the tournament
+        Tournament tournament = new Tournament();
+        tournament.setName(request.getName());
+        tournament.setStartDate(request.getStartDate());
+        tournament.setEndDate(request.getEndDate());
+        tournament.setStatus(TournamentStatus.PENDING);
+        
+        // Add players if playerIds are provided
+        if (request.getPlayerIds() != null && !request.getPlayerIds().isEmpty()) {
+            for (Long playerId : request.getPlayerIds()) {
+                Player player = playerRepository.findById(playerId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Player not found with id: " + playerId));
+                tournament.addPlayer(player);
+            }
+        }
+        
+        return tournamentRepository.save(tournament);
+    }
+
+    @Transactional
     public Match createMatch(Long tournamentId, CreateMatchRequest request) {
         Assert.notNull(request, "CreateMatchRequest must not be null");
         Assert.notNull(request.getPlayer1Id(), "Player1 ID must not be null");
@@ -62,6 +97,9 @@ public class TournamentService {
         Player player2 = playerRepository.findById(request.getPlayer2Id())
                 .orElseThrow(() -> new ResourceNotFoundException("Player 2 not found with id: " + request.getPlayer2Id()));
 
+        // Create a properly initialized MatchScore
+        MatchScore score = new MatchScore();
+        
         Match match = Match.builder()
                 .player1(player1)
                 .player2(player2)
@@ -70,37 +108,44 @@ public class TournamentService {
                 .venue(request.getVenue())
                 .notes(request.getNotes())
                 .status(MatchStatus.PENDING)
-                .score(new MatchScore())
+                .score(score)
                 .build();
 
         tournament.addMatch(match);
-        tournament = tournamentRepository.save(tournament);
-
+        tournamentRepository.save(tournament);
         return match;
     }
 
     @Transactional
     public void updateMatchScore(Long tournamentId, Long matchId, MatchScore score) {
-        Assert.notNull(score, "MatchScore must not be null");
-        
-        Tournament tournament = getTournament(tournamentId);
         Match match = getMatch(tournamentId, matchId);
-
         match.setScore(score);
-        match.setStatus(score.isComplete() ? MatchStatus.COMPLETED : MatchStatus.IN_PROGRESS);
-
-        tournamentRepository.save(tournament);
-    }
-
-    public List<Tournament> getAllTournaments() {
-        return tournamentRepository.findAll();
+        match.setStatus(MatchStatus.COMPLETED);
     }
 
     @Transactional
     public void deleteTournament(Long id) {
-        if (!tournamentRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Tournament not found with id: " + id);
+        Tournament tournament = getTournament(id);
+        tournamentRepository.delete(tournament);
+    }
+    
+    @Transactional
+    public Tournament addPlayersToTournament(Long tournamentId, List<Long> playerIds) {
+        Assert.notNull(playerIds, "Player IDs must not be null");
+        Assert.isTrue(!playerIds.isEmpty(), "Player IDs must not be empty");
+        
+        Tournament tournament = getTournament(tournamentId);
+        
+        for (Long playerId : playerIds) {
+            Player player = playerRepository.findById(playerId)
+                .orElseThrow(() -> new ResourceNotFoundException("Player not found with id: " + playerId));
+            
+            // Check if player is already in the tournament to avoid duplicates
+            if (tournament.getPlayers().stream().noneMatch(p -> p.getId().equals(playerId))) {
+                tournament.addPlayer(player);
+            }
         }
-        tournamentRepository.deleteById(id);
+        
+        return tournamentRepository.save(tournament);
     }
 } 

@@ -53,10 +53,13 @@ export default function NewTournamentPage() {
       playerIds: selectedPlayers
     }
 
+    console.log('Submitting tournament data:', tournamentData)
+
     try {
       await api.createTournament(tournamentData)
       router.push('/tournaments')
     } catch (err) {
+      console.error('Error creating tournament:', err)
       setError(err instanceof Error ? err.message : 'Failed to create tournament')
     } finally {
       setLoading(false)

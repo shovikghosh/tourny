@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @Embeddable
 @Data
@@ -17,12 +18,13 @@ public class MatchScore {
 
     @Embeddable
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class SetScore {
         @Column(name = "player1_score")
-        private Integer player1Score;
+        private Integer player1Score = 0;
         
         @Column(name = "player2_score")
-        private Integer player2Score;
+        private Integer player2Score = 0;
     }
 
     public MatchScore() {
@@ -49,22 +51,25 @@ public class MatchScore {
         if (index >= 0 && index < sets.size()) {
             return sets.get(index);
         }
-        return null;
+        // Return a new SetScore instead of null
+        return new SetScore();
     }
 
     public boolean isComplete() {
         return sets.stream().allMatch(set -> 
-            set.getPlayer1Score() != null && set.getPlayer2Score() != null);
+            set != null && set.getPlayer1Score() != null && set.getPlayer2Score() != null);
     }
 
     public int getPlayer1TotalScore() {
         return sets.stream()
+            .filter(set -> set != null)
             .mapToInt(set -> set.getPlayer1Score() != null ? set.getPlayer1Score() : 0)
             .sum();
     }
 
     public int getPlayer2TotalScore() {
         return sets.stream()
+            .filter(set -> set != null)
             .mapToInt(set -> set.getPlayer2Score() != null ? set.getPlayer2Score() : 0)
             .sum();
     }

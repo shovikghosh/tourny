@@ -12,6 +12,17 @@ const apiClient = axios.create({
   },
 });
 
+export interface CreateTournamentRequest {
+    name: string;
+    startDate: string;
+    endDate: string;
+    playerIds: number[];
+}
+
+export interface AddPlayersRequest {
+    playerIds: number[];
+}
+
 export const api = {
     // Tournament endpoints
     getTournaments: () => 
@@ -20,11 +31,15 @@ export const api = {
     getTournament: (id: number) => 
         apiClient.get<Tournament>(`/tournaments/${id}`).then(res => res.data),
     
-    createTournament: (data: any) => 
+    createTournament: (data: CreateTournamentRequest) => 
         apiClient.post<Tournament>(`/tournaments`, data).then(res => res.data),
     
     deleteTournament: (id: number) => 
         apiClient.delete(`/tournaments/${id}`),
+        
+    addPlayersToTournament: (tournamentId: number, playerIds: number[]) => 
+        apiClient.post<Tournament>(`/tournaments/${tournamentId}/players`, { playerIds })
+            .then(res => res.data),
 
     // Match endpoints
     createMatch: (tournamentId: number, data: CreateMatchRequest) => 

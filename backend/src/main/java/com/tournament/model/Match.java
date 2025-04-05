@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 
 @Entity
 @Data
@@ -31,7 +32,8 @@ public class Match {
 
     @Embedded
     @NotNull(message = "Score must not be null")
-    private MatchScore score;
+    @Builder.Default
+    private MatchScore score = new MatchScore();
 
     @Column(nullable = false)
     @NotNull(message = "Round must not be null")
@@ -50,12 +52,22 @@ public class Match {
 
     @Column
     private String notes;
+    
+    @ManyToOne
+    @JoinColumn(name = "tournament_id")
+    @JsonBackReference
+    private Tournament tournament;
 
     @PrePersist
     @PreUpdate
     public void validate() {
         if (player1 != null && player1.equals(player2)) {
             throw new IllegalArgumentException("Players must be different");
+        }
+        
+        // Ensure score is never null
+        if (score == null) {
+            score = new MatchScore();
         }
     }
 } 
