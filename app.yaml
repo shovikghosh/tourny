@@ -9,8 +9,6 @@ services:
     build_command: npm ci && npm run build
     run_command: npm start
     envs:
-      - key: NEXT_PUBLIC_API_BASE_URL
-        value: ${backend.INTERNAL_URL}/api
       - key: NODE_ENV
         value: "production"
     routes:
