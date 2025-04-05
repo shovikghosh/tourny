@@ -15,6 +15,7 @@ export default function NewMatchPage() {
   const [submitLoading, setSubmitLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [tournament, setTournament] = useState<Tournament | null>(null)
+  const [allPlayers, setAllPlayers] = useState<Player[]>([])
   
   // Load tournament data
   useEffect(() => {
@@ -24,8 +25,19 @@ export default function NewMatchPage() {
       setLoading(true)
       try {
         const data = await api.getTournament(tournamentId)
+        console.log('Tournament data:', data)
+        console.log('Tournament players:', data.players)
         setTournament(data)
+        
+        // If tournament doesn't have players, fetch all players as a fallback
+        if (!data.players || data.players.length === 0) {
+          console.log('No players in tournament, fetching all players as fallback')
+          const allPlayersData = await api.getPlayers()
+          console.log('All players:', allPlayersData)
+          setAllPlayers(allPlayersData)
+        }
       } catch (err) {
+        console.error('Error fetching tournament:', err)
         setError(err instanceof Error ? err.message : 'Failed to load tournament')
       } finally {
         setLoading(false)
@@ -65,6 +77,9 @@ export default function NewMatchPage() {
       setSubmitLoading(false)
     }
   }
+
+  // Use tournament players if available, otherwise use all players
+  const playersToShow = tournament?.players?.length ? tournament.players : allPlayers
 
   if (loading) {
     return (
@@ -139,13 +154,24 @@ export default function NewMatchPage() {
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="">Select Player 1</option>
-                {tournament.players.map((player: Player) => (
-                  <option key={`p1-${player.id}`} value={player.id}>
-                    {player.name}
-                  </option>
-                ))}
+                {playersToShow.length === 0 ? (
+                  <option disabled value="">No players available</option>
+                ) : (
+                  playersToShow.map((player: Player) => (
+                    <option key={`p1-${player.id}`} value={player.id}>
+                      {player.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
+            {playersToShow.length === 0 && (
+              <p className="mt-1 text-sm text-red-500">
+                <Link href="/players/new" className="text-red-700 underline" target="_blank">
+                  Add players first
+                </Link>
+              </p>
+            )}
           </div>
 
           <div>
@@ -160,11 +186,15 @@ export default function NewMatchPage() {
                 className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               >
                 <option value="">Select Player 2</option>
-                {tournament.players.map((player: Player) => (
-                  <option key={`p2-${player.id}`} value={player.id}>
-                    {player.name}
-                  </option>
-                ))}
+                {playersToShow.length === 0 ? (
+                  <option disabled value="">No players available</option>
+                ) : (
+                  playersToShow.map((player: Player) => (
+                    <option key={`p2-${player.id}`} value={player.id}>
+                      {player.name}
+                    </option>
+                  ))
+                )}
               </select>
             </div>
           </div>
