@@ -151,16 +151,32 @@ public class TournamentService {
     }
     
     /**
-     * Update the match status based on score progress
+     * Update the match status based on score progress and completion criteria.
      */
     private void updateMatchStatus(Match match, MatchScore score) {
+        // 1. Check if a winner has already been determined by sets won
         if (score.getWinnerSide() != null) {
-            // Match has a winner, mark as completed
             match.setStatus(MatchStatus.COMPLETED);
-        } else if (match.getStatus() == MatchStatus.PENDING && !score.getSets().isEmpty()) {
-            // Match has started but no winner yet
+            return; // Match is definitively over
+        }
+
+        // 2. Check if all intended sets have been played
+        // This marks the match structure as complete, even if no majority winner was reached yet.
+        if (score.getIntendedTotalSets() > 0 && score.getSets().size() >= score.getIntendedTotalSets()) {
+             match.setStatus(MatchStatus.COMPLETED);
+             // Note: score.getWinnerSide() might still be null here if, e.g., it was a draw 
+             // after the intended sets according to specific rules not yet implemented, 
+             // but the scheduled sets are finished.
+             return;
+        }
+
+        // 3. If no winner yet and not all sets played, check if it should move to IN_PROGRESS
+        if (match.getStatus() == MatchStatus.PENDING && score.getSets() != null && !score.getSets().isEmpty()) {
+            // Match has started (at least one set score recorded) but no winner yet
             match.setStatus(MatchStatus.IN_PROGRESS);
         }
+        // Otherwise, the status remains whatever it was (e.g., PENDING if no sets played,
+        // or IN_PROGRESS if already started but not yet finished/won)
     }
 
     @Transactional
