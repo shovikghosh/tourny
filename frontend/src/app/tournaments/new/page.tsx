@@ -70,10 +70,10 @@ export default function NewTournamentPage() {
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-white text-2xl font-semibold">New Tournament</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Create a new tournament by filling out the form below.
-          </p>
+          <div className="mb-6">
+            <h1 className="text-foreground text-2xl font-semibold">New Tournament</h1>
+            <p className="text-muted-foreground">Create a new table tennis tournament</p>
+          </div>
         </div>
       </div>
 
@@ -176,7 +176,7 @@ export default function NewTournamentPage() {
                       />
                     </div>
                     <div className="ml-3 flex-grow">
-                      <label className="text-white font-medium cursor-pointer">
+                      <label className="text-foreground font-medium cursor-pointer">
                         {player.name}
                       </label>
                       <p className="text-xs text-muted-foreground">{player.email}</p>

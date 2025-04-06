@@ -3,7 +3,20 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  :root, .light-theme {
+    --background: 0 0% 96%;
+    --foreground: 222 47% 11%;
+    --primary: 0 70% 45%;
+    --secondary: 217 70% 50%;
+    --accent: 30 80% 45%;
+    --muted: 220 14% 88%;
+    --muted-foreground: 220 9% 46%;
+    --border: 220 13% 80%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+  }
+  
+  .dark-theme {
     --background: 222 47% 11%;
     --foreground: 0 0% 100%;
     --primary: 0 70% 45%;
@@ -46,7 +59,7 @@
 /* WTT-specific components */
 @layer components {
   .wtt-button {
-    @apply inline-flex items-center rounded-md border border-primary bg-primary/20 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
+    @apply inline-flex items-center rounded-md border border-primary bg-primary/20 px-4 py-2 text-sm font-semibold text-foreground shadow-sm hover:bg-primary/40 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary;
   }
   
   .wtt-card {
@@ -73,25 +86,25 @@
     @apply bg-green-600/30 text-green-400;
   }
   
-  /* Form elements for dark theme */
+  /* Form elements */
   .wtt-form-container {
     @apply wtt-card p-6 space-y-6;
   }
   
   .wtt-input {
-    @apply block w-full rounded-md bg-muted border-border text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
+    @apply block w-full rounded-md bg-muted border-border text-foreground px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
   }
   
   .wtt-select {
-    @apply block w-full rounded-md bg-muted border-border text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
+    @apply block w-full rounded-md bg-muted border-border text-foreground px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
   }
   
   .wtt-textarea {
-    @apply block w-full rounded-md bg-muted border-border text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
+    @apply block w-full rounded-md bg-muted border-border text-foreground px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/50;
   }
   
   .wtt-label {
-    @apply block text-sm font-medium text-white mb-1;
+    @apply block text-sm font-medium text-foreground mb-1;
   }
   
   .wtt-checkbox {

@@ -41,15 +41,13 @@ export default function NewPlayerPage() {
     <div className="space-y-6">
       <div className="sm:flex sm:items-center">
         <div className="sm:flex-auto">
-          <h1 className="text-white text-2xl font-semibold">New Player</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Create a new player by filling out the form below.
-          </p>
+          <h1 className="text-foreground text-2xl font-semibold">New Player</h1>
+          <p className="text-muted-foreground">Add a new table tennis player</p>
         </div>
         <div className="mt-4 sm:ml-16 sm:mt-0 sm:flex-none">
           <Link
             href="/players"
-            className="block rounded-md bg-gray-600 px-3 py-2 text-center text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+            className="block rounded-md bg-gray-600 px-3 py-2 text-center text-sm font-semibold text-foreground shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
           >
             Back to Players
           </Link>
@@ -128,7 +126,7 @@ export default function NewPlayerPage() {
             />
           </div>
           <div className="ml-3 text-sm">
-            <label htmlFor="active" className="text-white font-medium">
+            <label htmlFor="active" className="text-foreground font-medium">
               Active
             </label>
             <p className="text-muted-foreground">Determines if the player is eligible for new tournaments.</p>

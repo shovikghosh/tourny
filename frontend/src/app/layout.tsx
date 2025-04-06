@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import Link from 'next/link'
+import ThemeToggle from '@/components/ThemeToggle'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,7 +18,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className="h-full">
+    <html lang="en" className="h-full dark-theme">
       <body className={`${inter.className} h-full`}>
         <Providers>
           <div className="min-h-full flex flex-col">
@@ -30,19 +31,22 @@ export default function RootLayout({
                       <div className="bg-card border border-border h-10 w-10 rounded-full flex items-center justify-center">
                         <span className="text-primary font-bold text-xl">T</span>
                       </div>
-                      <span className="ml-3 text-2xl font-bold text-white hover:text-primary transition-colors">
+                      <span className="ml-3 text-2xl font-bold text-foreground hover:text-primary transition-colors">
                         TOURNY
                       </span>
                     </Link>
                   </div>
-                  <nav className="flex space-x-8">
-                    <Link href="/tournaments" className="px-3 py-2 text-white hover:text-primary text-sm font-medium">
-                      TOURNAMENTS
-                    </Link>
-                    <Link href="/players" className="px-3 py-2 text-white hover:text-primary text-sm font-medium">
-                      PLAYERS
-                    </Link>
-                  </nav>
+                  <div className="flex items-center">
+                    <nav className="flex space-x-8 mr-4">
+                      <Link href="/tournaments" className="px-3 py-2 text-foreground hover:text-primary text-sm font-medium">
+                        TOURNAMENTS
+                      </Link>
+                      <Link href="/players" className="px-3 py-2 text-foreground hover:text-primary text-sm font-medium">
+                        PLAYERS
+                      </Link>
+                    </nav>
+                    <ThemeToggle />
+                  </div>
                 </div>
               </div>
             </header>

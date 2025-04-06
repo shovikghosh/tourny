@@ -147,17 +147,16 @@ export default function NewMatchPage() {
 
       <form onSubmit={handleSubmit} className="wtt-form-container">
         {tournament.players.length > 0 && allPlayers.length > tournament.players.length && (
-          <div className="flex items-center mb-4">
+          <div className="flex items-center">
             <input
               id="showAllPlayers"
-              name="showAllPlayers"
               type="checkbox"
-              checked={showAllPlayers}
-              onChange={toggleShowAllPlayers}
               className="wtt-checkbox"
+              checked={showAllPlayers}
+              onChange={() => setShowAllPlayers(!showAllPlayers)}
             />
-            <label htmlFor="showAllPlayers" className="ml-2 block text-sm text-white">
-              Show all players (including those not in this tournament)
+            <label htmlFor="showAllPlayers" className="ml-2 block text-sm text-foreground">
+              Show all players (including those already in matches)
             </label>
           </div>
         )}

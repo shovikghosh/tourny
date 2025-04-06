@@ -65,19 +65,19 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
             {/* Current set score */}
             {(match.status === 'PENDING' || match.status === 'IN_PROGRESS') && (
                 <div className="bg-card border border-border rounded-lg p-4">
-                    <h4 className="text-white font-medium mb-4 text-center">Current Set</h4>
+                    <h4 className="text-foreground font-medium mb-4 text-center">Current Set</h4>
                     <div className="grid grid-cols-2 gap-6">
                         <div className="text-center">
                             <div className="flex items-center justify-center mb-2">
                                 <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
                                     <span className="text-primary font-bold">P1</span>
                                 </div>
-                                <h3 className="font-semibold text-white ml-2">{match.player1.name}</h3>
+                                <h3 className="font-semibold text-foreground ml-2">{match.player1.name}</h3>
                             </div>
-                            <p className="text-4xl font-bold text-white">{currentSet.player1Score}</p>
+                            <p className="text-4xl font-bold text-foreground">{currentSet.player1Score}</p>
                             <button
                                 onClick={() => handleScoreUpdate('player1')}
-                                className="mt-3 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary/90 transition-colors"
+                                className="mt-3 px-4 py-2 bg-primary text-foreground rounded-md hover:bg-primary/90 transition-colors"
                                 disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
                             >
                                 Add Point
@@ -89,12 +89,12 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
                                 <div className="h-8 w-8 rounded-full bg-secondary/20 flex items-center justify-center">
                                     <span className="text-secondary font-bold">P2</span>
                                 </div>
-                                <h3 className="font-semibold text-white ml-2">{match.player2.name}</h3>
+                                <h3 className="font-semibold text-foreground ml-2">{match.player2.name}</h3>
                             </div>
-                            <p className="text-4xl font-bold text-white">{currentSet.player2Score}</p>
+                            <p className="text-4xl font-bold text-foreground">{currentSet.player2Score}</p>
                             <button
                                 onClick={() => handleScoreUpdate('player2')}
-                                className="mt-3 px-4 py-2 bg-secondary text-white rounded-md hover:bg-secondary/90 transition-colors"
+                                className="mt-3 px-4 py-2 bg-secondary text-foreground rounded-md hover:bg-secondary/90 transition-colors"
                                 disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
                             >
                                 Add Point
@@ -107,7 +107,7 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
             {/* Completed sets */}
             {match.score.sets.length > 0 && (
                 <div className="bg-card border border-border rounded-lg p-4">
-                    <h4 className="text-white font-medium mb-4">Completed Sets</h4>
+                    <h4 className="text-foreground font-medium mb-4">Completed Sets</h4>
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
@@ -122,8 +122,8 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
                                 {match.score.sets.map((set, index) => (
                                     <tr key={`set-${index}-${set.player1Score}-${set.player2Score}`} className="border-b border-border/50">
                                         <td className="py-2 px-4 text-left text-muted-foreground">{index + 1}</td>
-                                        <td className="py-2 px-4 text-center text-white font-medium">{set.player1Score}</td>
-                                        <td className="py-2 px-4 text-center text-white font-medium">{set.player2Score}</td>
+                                        <td className="py-2 px-4 text-center text-foreground font-medium">{set.player1Score}</td>
+                                        <td className="py-2 px-4 text-center text-foreground font-medium">{set.player2Score}</td>
                                         <td className="py-2 px-4 text-right">
                                             {set.winner && (
                                                 <span className={`px-2 py-1 text-xs font-medium rounded-full ${
@@ -146,7 +146,7 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
             {/* Match winner */}
             {match.status === 'COMPLETED' && match.score.winner && (
                 <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-4 text-center">
-                    <h3 className="font-bold text-white text-xl">
+                    <h3 className="font-bold text-foreground text-xl">
                         Winner: {match.score.winner === 'player1' ? match.player1.name : match.player2.name}
                     </h3>
                 </div>

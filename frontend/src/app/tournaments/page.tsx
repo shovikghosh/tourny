@@ -51,12 +51,10 @@ export default function TournamentsPage() {
   return (
     <div className="space-y-8">
       {/* Page header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-white">Tournaments</h1>
-          <p className="text-muted-foreground">
-            Browse and manage all tournaments
-          </p>
+          <h1 className="text-foreground">Tournaments</h1>
+          <p className="text-muted-foreground">Manage your table tennis tournaments</p>
         </div>
         <Link
           href="/tournaments/new"
@@ -69,7 +67,14 @@ export default function TournamentsPage() {
       {/* Tournaments grid */}
       {tournaments.length === 0 ? (
         <div className="wtt-card p-8 text-center">
-          <h3 className="text-xl font-semibold text-white mb-2">No tournaments yet</h3>
+          <div className="mb-4">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-primary">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M13 6a3 3 0 11-6 0 3 3 0 016 0zM18 8a2 2 0 11-4 0 2 2 0 014 0zM14 15a4 4 0 00-8 0v3h8v-3zM6 8a2 2 0 11-4 0 2 2 0 014 0zM16 18v-3a5.972 5.972 0 00-.75-2.906A3.005 3.005 0 0119 15v3h-3zM4.75 12.094A5.973 5.973 0 004 15v3H1v-3a3 3 0 013.75-2.906z" />
+              </svg>
+            </div>
+          </div>
+          <h3 className="text-xl font-semibold text-foreground mb-2">No tournaments yet</h3>
           <p className="text-muted-foreground mb-4">Get started by creating your first tournament</p>
           <Link href="/tournaments/new" className="wtt-button">
             Create Tournament
@@ -78,9 +83,9 @@ export default function TournamentsPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {tournaments.map((tournament) => (
-            <Link key={tournament.id} href={`/tournaments/${tournament.id}`} className="wtt-card hover:border-primary/50 transition-colors">
+            <Link key={tournament.id} href={`/tournaments/${tournament.id}`} className="wtt-card h-full hover:border-primary/50 transition-colors">
               <div className="p-6">
-                <h3 className="text-xl font-semibold text-white mb-1 truncate">
+                <h3 className="text-xl font-semibold text-foreground mb-1 truncate">
                   {tournament.name}
                 </h3>
                 <div className="flex items-center gap-2 mb-4">

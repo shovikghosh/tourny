@@ -53,7 +53,7 @@ export default function TournamentPage() {
   if (!tournament) {
     return (
       <div className="wtt-card p-8 text-center">
-        <h3 className="text-xl font-semibold text-white">Tournament not found</h3>
+        <h3 className="text-xl font-semibold text-foreground">Tournament not found</h3>
         <p className="text-muted-foreground mt-2 mb-4">The tournament you're looking for doesn't exist or has been removed.</p>
         <Link href="/tournaments" className="wtt-button">
           Back to Tournaments
@@ -71,7 +71,7 @@ export default function TournamentPage() {
           <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
             <div>
               <div className="flex items-center gap-3 mb-1">
-                <h1 className="text-white text-3xl">{tournament.name}</h1>
+                <h1 className="text-foreground text-3xl">{tournament.name}</h1>
                 <span className={`wtt-status-badge ${
                   tournament.status === 'COMPLETED' 
                     ? 'wtt-status-badge-completed'
@@ -89,7 +89,7 @@ export default function TournamentPage() {
             <div className="flex gap-3">
               <Link
                 href="/tournaments"
-                className="inline-flex items-center px-3 py-2 border border-border text-sm font-medium rounded-md text-white hover:bg-muted transition-colors"
+                className="inline-flex items-center px-3 py-2 border border-border text-sm font-medium rounded-md text-foreground hover:bg-muted transition-colors"
               >
                 Back
               </Link>
@@ -101,7 +101,7 @@ export default function TournamentPage() {
       {/* Players section */}
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-          <h2 className="text-white text-2xl">Players</h2>
+          <h2 className="text-foreground text-2xl">Players</h2>
           <Link
             href={`/tournaments/${tournament.id}/players/add`}
             className="wtt-button bg-green-600 hover:bg-green-700"
@@ -114,7 +114,7 @@ export default function TournamentPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {tournament.players.map((player) => (
               <div key={player.id} className="wtt-card p-4 hover:border-primary/50 transition-colors">
-                <h3 className="text-white font-semibold">{player.name}</h3>
+                <h3 className="text-foreground font-semibold">{player.name}</h3>
                 <p className="text-sm text-muted-foreground">{player.email}</p>
                 {player.rank && (
                   <div className="mt-2">
@@ -139,7 +139,7 @@ export default function TournamentPage() {
       {/* Matches section */}
       <div className="space-y-4">
         <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-          <h2 className="text-white text-2xl">Matches</h2>
+          <h2 className="text-foreground text-2xl">Matches</h2>
           <Link
             href={`/tournaments/${tournament.id}/matches/new`}
             className="wtt-button"
@@ -163,7 +163,7 @@ export default function TournamentPage() {
                   <div className="flex justify-between items-center mb-4">
                     <div>
                       <div className="flex items-center gap-2">
-                        <h3 className="text-white font-semibold">Round {match.round}</h3>
+                        <h3 className="text-foreground font-semibold">Round {match.round}</h3>
                         <span className={`wtt-status-badge ${
                           match.status === 'COMPLETED' 
                             ? 'wtt-status-badge-completed'
