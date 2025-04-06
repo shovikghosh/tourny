@@ -141,10 +141,12 @@ public class TournamentService {
             return;
         }
         
-        // Create sets in the match score if needed
+        // Determine the target number of sets based on the input score's sets
         int neededSets = score.getSets().size();
+        
+        // Ensure the Match entity's score object has enough SetScore entries
         while (match.getScore().getSets().size() < neededSets) {
-            match.getScore().addSet();
+            match.getScore().addNewEmptySet(); // Use the new method to add empty sets
         }
     }
     

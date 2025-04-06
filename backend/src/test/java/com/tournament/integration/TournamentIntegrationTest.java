@@ -101,38 +101,37 @@ public class TournamentIntegrationTest {
         
         // Initially the status should be PENDING with no sets
         assertEquals(MatchStatus.PENDING, match1.getStatus());
+        assertNotNull(match1.getScore()); // Score object should exist
         assertEquals(0, match1.getScore().getSets().size());
 
-        // Update match score - player1 wins 2 sets, player2 wins 1 set
-        MatchScore score = new MatchScore();
-        // Add three sets
-        score.addSet();
-        score.addSet();
-        score.addSet();
+        // Update match score - player1 wins 2 sets, player2 wins 1 set (best of 3)
+        MatchScore score = new MatchScore(3); // Set intended sets to 3
         
-        score.getSet(0).setPlayer1Score(11);
-        score.getSet(0).setPlayer2Score(9);
-        
-        score.getSet(1).setPlayer1Score(11);
-        score.getSet(1).setPlayer2Score(7);
-        
-        score.getSet(2).setPlayer1Score(9);
-        score.getSet(2).setPlayer2Score(11);
+        // Use helper to add sets and scores
+        setSetScore(score, 0, 11, 9); // P1 wins
+        setSetScore(score, 1, 11, 7); // P1 wins
+        setSetScore(score, 2, 9, 11); // P2 wins
 
         tournamentService.updateMatchScore(tournament.getId(), match1.getId(), score);
 
         // Verify match was updated
         Match updatedMatch = tournamentService.getMatch(tournament.getId(), match1.getId());
         assertNotNull(updatedMatch);
+        assertNotNull(updatedMatch.getScore());
         
         // Match should be COMPLETED since player1 won 2 out of 3 sets
         assertEquals(MatchStatus.COMPLETED, updatedMatch.getStatus());
+        assertEquals(3, updatedMatch.getScore().getSets().size()); // Check actual sets played
+        assertEquals(3, updatedMatch.getScore().getIntendedTotalSets()); // Check intended sets
         
         // Verify individual set scores
+        assertNotNull(updatedMatch.getScore().getSet(0));
         assertEquals(11, updatedMatch.getScore().getSet(0).getPlayer1Score());
         assertEquals(9, updatedMatch.getScore().getSet(0).getPlayer2Score());
+        assertNotNull(updatedMatch.getScore().getSet(1));
         assertEquals(11, updatedMatch.getScore().getSet(1).getPlayer1Score());
         assertEquals(7, updatedMatch.getScore().getSet(1).getPlayer2Score());
+        assertNotNull(updatedMatch.getScore().getSet(2));
         assertEquals(9, updatedMatch.getScore().getSet(2).getPlayer1Score());
         assertEquals(11, updatedMatch.getScore().getSet(2).getPlayer2Score());
         
@@ -155,21 +154,35 @@ public class TournamentIntegrationTest {
         // Create match
         Match match = tournamentService.createMatch(tournament.getId(), request);
         assertEquals(MatchStatus.PENDING, match.getStatus());
+        assertNotNull(match.getScore());
         
-        // Update with a partial score (not enough to determine winner)
-        MatchScore score = new MatchScore();
-        // Set total sets to 3 to make it a best-of-3 match
-        score.setTotalSets(3);
-        score.addSet();
-        score.getSet(0).setPlayer1Score(11);
-        score.getSet(0).setPlayer2Score(9);
+        // Update with a partial score (not enough to determine winner in a best-of-3)
+        MatchScore score = new MatchScore(3); // Set intended sets to 3
+        setSetScore(score, 0, 11, 9); // P1 wins set 1
         
         tournamentService.updateMatchScore(tournament.getId(), match.getId(), score);
         
         // Verify match is now in progress
         Match updatedMatch = tournamentService.getMatch(tournament.getId(), match.getId());
+        assertNotNull(updatedMatch.getScore());
         assertEquals(MatchStatus.IN_PROGRESS, updatedMatch.getStatus());
-        assertNull(updatedMatch.getScore().getWinner());
+        assertEquals(1, updatedMatch.getScore().getSets().size()); // Only 1 set played
+        assertEquals(3, updatedMatch.getScore().getIntendedTotalSets()); // But intended format is 3
+        assertNull(updatedMatch.getScore().getWinner()); // No match winner yet
+    }
+
+    // Helper method to simplify setting scores in tests
+    private void setSetScore(MatchScore score, int setIndex, int p1Score, int p2Score) {
+        while (score.getSets().size() <= setIndex) {
+            score.addNewEmptySet();
+        }
+        MatchScore.SetScore set = score.getSet(setIndex);
+        if (set != null) {
+            set.setPlayer1Score(p1Score);
+            set.setPlayer2Score(p2Score);
+        } else {
+            fail("Failed to get or create set at index: " + setIndex);
+        }
     }
 
     @Test

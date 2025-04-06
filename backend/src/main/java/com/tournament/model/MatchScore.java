@@ -14,8 +14,8 @@ public class MatchScore {
     @CollectionTable(name = "match_sets", joinColumns = @JoinColumn(name = "match_id"))
     private List<SetScore> sets = new ArrayList<>();
     
-    @Column
-    private int totalSets = 0; // Default to 0 sets initially
+    @Column(name = "intended_total_sets")
+    private int intendedTotalSets = 0;
     
     @Column(name = "winner")
     private String winner; // Stored as string in DB for compatibility
@@ -75,38 +75,49 @@ public class MatchScore {
     }
 
     /**
-     * Default constructor initializes with no sets
+     * Default constructor initializes with no sets and unspecified intended total sets.
      */
     public MatchScore() {
-        // Empty constructor - initializes with no sets by default
+        this.intendedTotalSets = 0; // Indicates format not yet set or single set match?
     }
 
     /**
-     * Constructor that initializes with a specific number of sets
+     * Constructor that initializes for a specific match format (e.g., best of 3 or 5).
+     * @param intendedTotalSets The total number of sets intended for the match (e.g., 3 or 5).
      */
-    public MatchScore(int totalSets) {
-        this.totalSets = totalSets;
-        for (int i = 0; i < totalSets; i++) {
-            sets.add(new SetScore());
+    public MatchScore(int intendedTotalSets) {
+        this.intendedTotalSets = intendedTotalSets;
+        // Note: We don't pre-populate the sets list anymore based on intendedTotalSets.
+        // Sets are added as they are played.
+    }
+
+    /**
+     * Add a new set score to this match score.
+     * Does NOT change intendedTotalSets.
+     */
+    public void addSet(SetScore set) {
+        if (set != null) {
+            this.sets.add(set);
         }
     }
 
     /**
-     * Add a new set to this match
+     * Add a new empty set score placeholder.
+     * Does NOT change intendedTotalSets.
      */
-    public void addSet() {
-        sets.add(new SetScore());
-        totalSets++;
+    public void addNewEmptySet() {
+         this.sets.add(new SetScore());
     }
-
+    
     /**
-     * Get a set at the specified index, or a new empty set if index is out of range
+     * Get a set at the specified index.
+     * Returns null if index is out of range or set doesn't exist.
      */
     public SetScore getSet(int index) {
         if (index >= 0 && index < sets.size()) {
             return sets.get(index);
         }
-        return new SetScore(); // Return a new SetScore instead of null
+        return null; // Return null if set doesn't exist at index
     }
 
     /**
@@ -165,8 +176,7 @@ public class MatchScore {
      */
     private int getSetsWonByPlayer(PlayerSide side) {
         return (int) sets.stream()
-            .filter(set -> set != null)
-            .filter(set -> side.equals(set.getWinner()))
+            .filter(set -> set != null && side.equals(set.getWinner()))
             .count();
     }
     
@@ -185,22 +195,18 @@ public class MatchScore {
     }
     
     /**
-     * Determine the match winner based on sets won.
-     * A player must win the majority of sets to win the match.
+     * Determine the match winner based on sets won and the intended match format.
      * @return PlayerSide of the match winner, or null if no winner yet
      */
     public PlayerSide calculateWinner() {
-        int player1Sets = getPlayer1SetsWon();
-        int player2Sets = getPlayer2SetsWon();
-        
-        // If no totalSets is specified or not enough sets are played yet,
-        // don't calculate a winner
-        if (totalSets == 0) {
+        if (intendedTotalSets <= 0) {
             return null;
         }
+
+        int player1Sets = getPlayer1SetsWon();
+        int player2Sets = getSetsWonByPlayer(PlayerSide.PLAYER2);
         
-        // Calculate the minimum sets needed to win (best of N)
-        int setsToWin = (totalSets / 2) + 1;
+        int setsToWin = (intendedTotalSets / 2) + 1;
         
         if (player1Sets >= setsToWin) {
             return PlayerSide.PLAYER1;
@@ -212,11 +218,18 @@ public class MatchScore {
     }
     
     /**
-     * Update the winner field based on the current set scores.
-     * Should be called whenever the score is updated.
+     * Update the winner field based on the current set scores and match format.
      */
     public void updateWinner() {
         PlayerSide winnerSide = calculateWinner();
         setWinnerSide(winnerSide);
+    }
+    
+    public int getIntendedTotalSets() {
+        return intendedTotalSets;
+    }
+    
+    public void setIntendedTotalSets(int intendedTotalSets) {
+        this.intendedTotalSets = intendedTotalSets;
     }
 } 
