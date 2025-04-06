@@ -45,15 +45,29 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
                 });
                 
                 console.log("Received updated match from API:", updatedMatch);
+
+                // Ensure the latest set winner is reflected in the object passed upwards
+                // This acts as a safeguard if the API response doesn't immediately reflect the winner of the set just finished.
+                if (updatedMatch && updatedMatch.score && updatedMatch.score.sets) {
+                    const lastSetIndex = updatedMatch.score.sets.length - 1;
+                    if (lastSetIndex >= 0 && updatedSet.winner && !updatedMatch.score.sets[lastSetIndex].winner) {
+                        // If API didn't return the winner for the last set, use the one we calculated
+                        updatedMatch.score.sets[lastSetIndex].winner = updatedSet.winner;
+                        console.log("Manually added winner to last set in updatedMatch"); // Debug log
+                    }
+                }
                 
-                // Reset the current set immediately
-                setCurrentSet({ player1Score: 0, player2Score: 0 });
+                // Reset the current set immediately only if the match is not completed
+                if (updatedMatch.status !== 'COMPLETED') {
+                  setCurrentSet({ player1Score: 0, player2Score: 0 });
+                }
                 
                 // Notify parent component about the update
                 onScoreUpdate(updatedMatch);
             } catch (error) {
                 console.error("Failed to update match score:", error);
                 // Keep the local state if the API call fails
+                // Maybe show an error message to the user
             }
         } else {
             setCurrentSet(updatedSet);

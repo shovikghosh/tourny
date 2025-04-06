@@ -43,18 +43,27 @@ public class MatchScore {
                 return null;
             }
             
-            // Both players must have valid scores
+            // Check if minimum points are reached
             if (player1Score < MIN_POINTS_TO_WIN && player2Score < MIN_POINTS_TO_WIN) {
                 return null; // No winner yet - neither player reached minimum points
             }
             
+            // Check for minimum point difference
             int diff = Math.abs(player1Score - player2Score);
             if (diff < MIN_POINT_DIFFERENCE) {
                 return null; // No winner yet - point difference too small
             }
             
-            // Determine winner based on higher score
-            return player1Score > player2Score ? PlayerSide.PLAYER1 : PlayerSide.PLAYER2;
+            // Determine winner based on scores
+            if (player1Score > player2Score) {
+                return PlayerSide.PLAYER1;
+            } else if (player2Score > player1Score) {
+                return PlayerSide.PLAYER2;
+            } else {
+                // This case should theoretically not be reached if rules are followed,
+                // but handle it defensively.
+                return null;
+            }
         }
         
         /**
