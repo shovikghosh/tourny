@@ -23,12 +23,12 @@ export default function RootLayout({
         <Providers>
           <div className="min-h-full flex flex-col">
             {/* Header */}
-            <header className="bg-card border-b border-border">
+            <header className="bg-card border-b border-border shadow-sm">
               <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-20">
                   <div className="flex items-center">
                     <Link href="/" className="flex shrink-0 items-center">
-                      <div className="bg-card border border-border h-10 w-10 rounded-full flex items-center justify-center">
+                      <div className="bg-primary/10 border-2 border-primary h-10 w-10 rounded-full flex items-center justify-center">
                         <span className="text-primary font-bold text-xl">T</span>
                       </div>
                       <span className="ml-3 text-2xl font-bold text-foreground hover:text-primary transition-colors">
@@ -38,10 +38,10 @@ export default function RootLayout({
                   </div>
                   <div className="flex items-center">
                     <nav className="flex space-x-8 mr-4">
-                      <Link href="/tournaments" className="px-3 py-2 text-foreground hover:text-primary text-sm font-medium">
+                      <Link href="/tournaments" className="px-3 py-2 text-foreground hover:text-primary text-sm font-medium tracking-wide">
                         TOURNAMENTS
                       </Link>
-                      <Link href="/players" className="px-3 py-2 text-foreground hover:text-primary text-sm font-medium">
+                      <Link href="/players" className="px-3 py-2 text-foreground hover:text-primary text-sm font-medium tracking-wide">
                         PLAYERS
                       </Link>
                     </nav>
