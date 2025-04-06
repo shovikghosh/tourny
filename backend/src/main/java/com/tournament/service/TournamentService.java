@@ -97,8 +97,8 @@ public class TournamentService {
         Player player2 = playerRepository.findById(request.getPlayer2Id())
                 .orElseThrow(() -> new ResourceNotFoundException("Player 2 not found with id: " + request.getPlayer2Id()));
 
-        // Create a properly initialized MatchScore with 0 sets
-        MatchScore score = new MatchScore();
+        // Create a properly initialized MatchScore for a best-of-3 match
+        MatchScore score = new MatchScore(3); // Initialize with intendedTotalSets = 3
         
         Match match = Match.builder()
                 .player1(player1)
