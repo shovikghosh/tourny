@@ -32,12 +32,14 @@ export default function TournamentPage() {
   const handleMatchScoreUpdate = (updatedMatch: Match) => {
     if (!tournament) return
 
+    const updatedMatches = tournament.matches.map((match: Match) =>
+      match.id === updatedMatch.id ? updatedMatch : match
+    );
+
     setTournament({
       ...tournament,
-      matches: tournament.matches.map((match: Match) =>
-        match.id === updatedMatch.id ? updatedMatch : match
-      ),
-    })
+      matches: updatedMatches,
+    });
   }
 
   if (loading) {

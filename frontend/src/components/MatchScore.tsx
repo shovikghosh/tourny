@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Match, Set } from '@/types/match';
 import { api } from '@/services/api';
 
@@ -15,6 +15,13 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
         player1Score: 0,
         player2Score: 0,
     });
+    
+    // Reset the current set when match data changes from outside
+    useEffect(() => {
+        if (match.status === 'COMPLETED') {
+            setCurrentSet({ player1Score: 0, player2Score: 0 });
+        }
+    }, [match.status, match.score.sets.length]);
 
     const handleScoreUpdate = async (player: 'player1' | 'player2') => {
         const newScore = player === 'player1' 
@@ -30,17 +37,24 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
         if (newScore >= 11 && Math.abs(newScore - (player === 'player1' ? currentSet.player2Score : currentSet.player1Score)) >= 2) {
             updatedSet.winner = player;
             
-            // Create new set if match isn't complete
-            if (match.score.sets.length < 4) {
+            try {
+                // Update match score
+                const updatedSets = [...match.score.sets, updatedSet];
+                const updatedMatch = await api.updateMatchScore(tournamentId, match.id, {
+                    sets: updatedSets,
+                });
+                
+                console.log("Received updated match from API:", updatedMatch);
+                
+                // Reset the current set immediately
                 setCurrentSet({ player1Score: 0, player2Score: 0 });
+                
+                // Notify parent component about the update
+                onScoreUpdate(updatedMatch);
+            } catch (error) {
+                console.error("Failed to update match score:", error);
+                // Keep the local state if the API call fails
             }
-
-            // Update match score
-            const updatedSets = [...match.score.sets, updatedSet];
-            const updatedMatch = await api.updateMatchScore(tournamentId, match.id, {
-                sets: updatedSets,
-            });
-            onScoreUpdate(updatedMatch);
         } else {
             setCurrentSet(updatedSet);
         }
@@ -106,18 +120,20 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
                             </thead>
                             <tbody>
                                 {match.score.sets.map((set, index) => (
-                                    <tr key={index} className="border-b border-border/50">
+                                    <tr key={`set-${index}-${set.player1Score}-${set.player2Score}`} className="border-b border-border/50">
                                         <td className="py-2 px-4 text-left text-muted-foreground">{index + 1}</td>
                                         <td className="py-2 px-4 text-center text-white font-medium">{set.player1Score}</td>
                                         <td className="py-2 px-4 text-center text-white font-medium">{set.player2Score}</td>
                                         <td className="py-2 px-4 text-right">
-                                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                set.winner === 'player1' 
-                                                    ? 'bg-primary/20 text-primary' 
-                                                    : 'bg-secondary/20 text-secondary'
-                                            }`}>
-                                                {set.winner === 'player1' ? match.player1.name : match.player2.name}
-                                            </span>
+                                            {set.winner && (
+                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                    set.winner === 'player1' 
+                                                        ? 'bg-primary/20 text-primary' 
+                                                        : 'bg-secondary/20 text-secondary'
+                                                }`}>
+                                                    {set.winner === 'player1' ? match.player1.name : match.player2.name}
+                                                </span>
+                                            )}
                                         </td>
                                     </tr>
                                 ))}
