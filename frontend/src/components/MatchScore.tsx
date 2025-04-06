@@ -133,24 +133,29 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
                                 </tr>
                             </thead>
                             <tbody>
-                                {match.score.sets.map((set, index) => (
-                                    <tr key={`set-${index}-${set.player1Score}-${set.player2Score}`} className="border-b border-border/50">
-                                        <td className="py-2 px-4 text-left text-muted-foreground">{index + 1}</td>
-                                        <td className="py-2 px-4 text-center text-foreground font-medium">{set.player1Score}</td>
-                                        <td className="py-2 px-4 text-center text-foreground font-medium">{set.player2Score}</td>
-                                        <td className="py-2 px-4 text-right">
-                                            {set.winner && (
-                                                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                    set.winner === 'player1' 
-                                                        ? 'bg-primary/20 text-primary' 
-                                                        : 'bg-secondary/20 text-secondary'
-                                                }`}>
-                                                    {set.winner === 'player1' ? match.player1.name : match.player2.name}
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
+                                {match.score.sets.map((set, index) => {
+                                    // --- DEBUG LOGGING ---
+                                    console.log(`Rendering Set ${index + 1}:`, JSON.stringify(set)); 
+                                    // --- END DEBUG LOGGING ---
+                                    return (
+                                        <tr key={`set-${index}-${set?.player1Score}-${set?.player2Score}`} className="border-b border-border/50">
+                                            <td className="py-2 px-4 text-left text-muted-foreground">{index + 1}</td>
+                                            <td className="py-2 px-4 text-center text-foreground font-medium">{set?.player1Score ?? 'N/A'}</td>
+                                            <td className="py-2 px-4 text-center text-foreground font-medium">{set?.player2Score ?? 'N/A'}</td>
+                                            <td className="py-2 px-4 text-right">
+                                                {set?.winner && (
+                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                                                        set.winner?.toLowerCase() === 'player1' 
+                                                            ? 'bg-primary/20 text-primary' 
+                                                            : 'bg-secondary/20 text-secondary'
+                                                    }`}>
+                                                        {set.winner?.toLowerCase() === 'player1' ? match.player1.name : match.player2.name}
+                                                    </span>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
