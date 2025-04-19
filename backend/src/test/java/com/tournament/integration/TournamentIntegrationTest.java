@@ -5,12 +5,14 @@ import com.tournament.service.PlayerService;
 import com.tournament.service.TournamentService;
 import com.tournament.dto.CreateMatchRequest;
 import com.tournament.dto.CreateTournamentRequest;
+import com.tournament.dto.UpdateScoreResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.transaction.annotation.Transactional;
+import com.tournament.config.GameRules;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -31,6 +33,9 @@ public class TournamentIntegrationTest {
 
     @Autowired
     private TournamentService tournamentService;
+    
+    @Autowired
+    private GameRules gameRules;
 
     private Player player1;
     private Player player2;
@@ -92,10 +97,10 @@ public class TournamentIntegrationTest {
         request.setPlayer1Id(player1.getId());
         request.setPlayer2Id(player2.getId());
         request.setRound(1);
+        request.setIntendedTotalSets(3);
         request.setScheduledTime(LocalDateTime.now().plusHours(1));
         request.setVenue("Test Venue");
         request.setNotes("Test Match");
-        request.setIntendedTotalSets(3);
 
         // Create match
         Match match1 = tournamentService.createMatch(tournament.getId(), request);
@@ -105,40 +110,49 @@ public class TournamentIntegrationTest {
         assertNotNull(match1.getScore()); // Score object should exist
         assertEquals(0, match1.getScore().getSets().size());
 
-        // Update match score - player1 wins 2 sets, player2 wins 1 set (best of 3)
-        MatchScore score = new MatchScore(match1.getScore().getIntendedTotalSets()); // Set intended sets to 3
-        
-        // Use helper to add sets and scores
-        setSetScore(score, 0, 11, 9); // P1 wins
-        setSetScore(score, 1, 9, 11); // P2 wins
-        setSetScore(score, 2, 11, 7); // P1 wins
+        // Update match score
+        MatchScore scoreUpdate = new MatchScore(3);
+        setSetScore(scoreUpdate, 0, 11, 9); 
+        setSetScore(scoreUpdate, 1, 9, 11);
+        setSetScore(scoreUpdate, 2, 11, 7);
 
-        tournamentService.updateMatchScore(tournament.getId(), match1.getId(), score);
+        // --- DEBUG LOGGING BEFORE CALL ---
+        System.out.println("ScoreUpdate Sets BEFORE service call: " + scoreUpdate.getSets());
+        // --- END DEBUG LOGGING ---
+
+        // Call the service that returns the new response
+        UpdateScoreResponse response = tournamentService.updateMatchScore(tournament.getId(), match1.getId(), scoreUpdate);
+        Match updatedMatch = response.getUpdatedMatch();
 
         // Verify match was updated
-        Match updatedMatch = tournamentService.getMatch(tournament.getId(), match1.getId());
         assertNotNull(updatedMatch);
         assertNotNull(updatedMatch.getScore());
-        
+
         // Match should be COMPLETED since player1 won 2 out of 3 sets
         assertEquals(MatchStatus.COMPLETED, updatedMatch.getStatus());
+        assertEquals(ScoreUpdateStatus.MATCH_COMPLETED, response.getScoreUpdateStatus());
         assertEquals(3, updatedMatch.getScore().getSets().size()); // Check actual sets played
         assertEquals(3, updatedMatch.getScore().getIntendedTotalSets()); // Check intended sets
-        
+
         // Verify individual set scores
         assertNotNull(updatedMatch.getScore().getSet(0));
+        // --- DEBUG LOGGING AFTER CALL ---
+        System.out.println("UpdatedMatch Sets AFTER service call: " + updatedMatch.getScore().getSets());
+        // --- END DEBUG LOGGING ---
         assertEquals(11, updatedMatch.getScore().getSet(0).getPlayer1Score());
         assertEquals(9, updatedMatch.getScore().getSet(0).getPlayer2Score());
-        assertNotNull(updatedMatch.getScore().getSet(2));
-        assertEquals(11, updatedMatch.getScore().getSet(2).getPlayer1Score());
-        assertEquals(7, updatedMatch.getScore().getSet(2).getPlayer2Score());
+        
         assertNotNull(updatedMatch.getScore().getSet(1));
         assertEquals(9, updatedMatch.getScore().getSet(1).getPlayer1Score());
         assertEquals(11, updatedMatch.getScore().getSet(1).getPlayer2Score());
+
+        assertNotNull(updatedMatch.getScore().getSet(2));
+        assertEquals(11, updatedMatch.getScore().getSet(2).getPlayer1Score());
+        assertEquals(7, updatedMatch.getScore().getSet(2).getPlayer2Score());
         
-        // Verify match winner calculation
-        assertEquals(2, updatedMatch.getScore().getPlayer1SetsWon());
-        assertEquals(1, updatedMatch.getScore().getPlayer2SetsWon());
+        // Verify match winner calculation (pass gameRules)
+        assertEquals(2, updatedMatch.getScore().getPlayer1SetsWon(gameRules)); 
+        assertEquals(1, updatedMatch.getScore().getPlayer2SetsWon(gameRules)); 
         assertEquals(PlayerSide.PLAYER1.toString(), updatedMatch.getScore().getWinner());
         assertEquals(PlayerSide.PLAYER1, updatedMatch.getScore().getWinnerSide());
     }
