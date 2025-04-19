@@ -41,6 +41,7 @@ export interface CreateMatchRequest {
     player1Id: number;
     player2Id: number;
     round: number;
+    intendedTotalSets?: number;
     scheduledTime?: string;
     venue?: string;
     notes?: string;

@@ -94,8 +94,15 @@ public class TournamentService {
         Assert.notNull(request, "CreateMatchRequest must not be null");
         Assert.notNull(request.getPlayer1Id(), "Player1 ID must not be null");
         Assert.notNull(request.getPlayer2Id(), "Player2 ID must not be null");
+        Assert.notNull(request.getRound(), "Round must not be null");
+        Assert.isTrue(request.getRound() > 0, "Round must be positive");
         Assert.isTrue(!request.getPlayer1Id().equals(request.getPlayer2Id()), 
             "Players must be different");
+        // Optional validation for intended sets
+        if (request.getIntendedTotalSets() != null) {
+            Assert.isTrue(request.getIntendedTotalSets() > 0 && request.getIntendedTotalSets() % 2 != 0, 
+                "Intended total sets must be a positive odd number (e.g., 1, 3, 5)");
+        }
 
         Tournament tournament = getTournament(tournamentId);
         
@@ -104,8 +111,12 @@ public class TournamentService {
         Player player2 = playerRepository.findById(request.getPlayer2Id())
                 .orElseThrow(() -> new ResourceNotFoundException("Player 2 not found with id: " + request.getPlayer2Id()));
 
-        // Create a properly initialized MatchScore for a best-of-3 match
-        MatchScore score = new MatchScore(3); // Initialize with intendedTotalSets = 3
+        // Determine the intended sets, defaulting to 3 if not provided or invalid (e.g., 0 or even)
+        int setsForMatch = (request.getIntendedTotalSets() != null && request.getIntendedTotalSets() > 0 && request.getIntendedTotalSets() % 2 != 0) 
+                            ? request.getIntendedTotalSets() 
+                            : 3; // Default to best-of-3
+
+        MatchScore score = new MatchScore(setsForMatch); 
         
         Match match = Match.builder()
                 .player1(player1)
@@ -115,7 +126,7 @@ public class TournamentService {
                 .venue(request.getVenue())
                 .notes(request.getNotes())
                 .status(MatchStatus.PENDING)
-                .score(score)
+                .score(score) // Score now includes intendedTotalSets
                 .build();
 
         tournament.addMatch(match);

@@ -17,6 +17,7 @@ export default function NewMatchPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null)
   const [allPlayers, setAllPlayers] = useState<Player[]>([])
   const [showAllPlayers, setShowAllPlayers] = useState(false)
+  const [intendedSets, setIntendedSets] = useState<number>(3)
   
   // Load tournament data
   useEffect(() => {
@@ -55,6 +56,7 @@ export default function NewMatchPage() {
       player1Id: Number(formData.get('player1Id')),
       player2Id: Number(formData.get('player2Id')),
       round: Number(formData.get('round')),
+      intendedTotalSets: intendedSets,
       scheduledTime: formData.get('scheduledTime') as string || undefined,
       venue: formData.get('venue') as string || undefined,
       notes: formData.get('notes') as string || undefined
@@ -223,19 +225,42 @@ export default function NewMatchPage() {
           </div>
         </div>
 
-        <div>
-          <label htmlFor="round" className="wtt-label">
-            Round
-          </label>
-          <div className="mt-1">
-            <input
-              type="number"
-              name="round"
-              id="round"
-              required
-              min="1"
-              className="wtt-input"
-            />
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <div>
+            <label htmlFor="round" className="wtt-label">
+              Round *
+            </label>
+            <div className="mt-1">
+              <input
+                type="number"
+                name="round"
+                id="round"
+                required
+                min="1"
+                className="wtt-input"
+              />
+            </div>
+          </div>
+          
+          <div>
+            <label htmlFor="intendedTotalSets" className="wtt-label">
+              Format (Best of)
+            </label>
+            <div className="mt-1">
+              <select
+                id="intendedTotalSets"
+                name="intendedTotalSets"
+                value={intendedSets}
+                onChange={(e) => setIntendedSets(Number(e.target.value))}
+                required
+                className="wtt-select"
+              >
+                <option value="1">1 Set</option> 
+                <option value="3">3 Sets</option>
+                <option value="5">5 Sets</option>
+                <option value="7">7 Sets</option>
+              </select>
+            </div>
           </div>
         </div>
 
