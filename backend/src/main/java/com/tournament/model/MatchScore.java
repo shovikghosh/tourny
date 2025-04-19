@@ -15,7 +15,7 @@ public class MatchScore {
     private List<SetScore> sets = new ArrayList<>();
     
     @Column(name = "intended_total_sets")
-    private int intendedTotalSets = 0;
+    private int intendedTotalSets;
     
     @Column(name = "winner")
     private String winner; // Stored as string in DB for compatibility
@@ -78,7 +78,7 @@ public class MatchScore {
      * Default constructor initializes with no sets and unspecified intended total sets.
      */
     public MatchScore() {
-        this.intendedTotalSets = 0; // Indicates format not yet set or single set match?
+        this.intendedTotalSets = 5; // Indicates format not yet set or single set match?
     }
 
     /**
@@ -223,13 +223,5 @@ public class MatchScore {
     public void updateWinner() {
         PlayerSide winnerSide = calculateWinner();
         setWinnerSide(winnerSide);
-    }
-    
-    public int getIntendedTotalSets() {
-        return intendedTotalSets;
-    }
-    
-    public void setIntendedTotalSets(int intendedTotalSets) {
-        this.intendedTotalSets = intendedTotalSets;
     }
 } 

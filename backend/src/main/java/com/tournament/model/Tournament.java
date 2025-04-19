@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,6 +19,8 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = {"players", "matches"})
+@EqualsAndHashCode(exclude = {"players", "matches"})
 @Table(name = "tournaments")
 public class Tournament {
     @Id

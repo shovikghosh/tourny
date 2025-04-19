@@ -11,9 +11,12 @@ import com.tournament.model.TournamentStatus;
 import com.tournament.model.Match;
 import com.tournament.model.Player;
 import com.tournament.model.ScoreUpdateStatus;
+import com.tournament.model.PlayerSide;
 import com.tournament.repository.TournamentRepository;
 import com.tournament.repository.PlayerRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -24,6 +27,8 @@ import java.util.ArrayList;
 @Service
 @RequiredArgsConstructor
 public class TournamentService {
+    private static final Logger logger = LoggerFactory.getLogger(TournamentService.class);
+    
     private final TournamentRepository tournamentRepository;
     private final PlayerRepository playerRepository;
 
@@ -120,52 +125,84 @@ public class TournamentService {
 
     @Transactional
     public UpdateScoreResponse updateMatchScore(Long tournamentId, Long matchId, MatchScore scoreUpdate) {
+        logger.debug("Updating score for match ID: {} in tournament ID: {}", matchId, tournamentId);
         Match match = getMatch(tournamentId, matchId);
-        int setsBeforeUpdate = match.getScore().getSets().size();
+        MatchScore managedScore = match.getScore();
+        int setsBeforeUpdate = managedScore.getSets().size();
+        logger.debug("Sets before update: {}", setsBeforeUpdate);
 
-        // Apply the score update
-        match.setScore(scoreUpdate);
-        
-        // Calculate winner and update overall match status based on the NEW score
-        scoreUpdate.updateWinner(); 
-        updateMatchStatus(match, scoreUpdate);
+        // Apply score update data
+        if (scoreUpdate.getSets() != null) {
+            managedScore.getSets().clear();
+            managedScore.getSets().addAll(scoreUpdate.getSets());
+            logger.debug("Applied {} sets from update request.", scoreUpdate.getSets().size());
+        }
 
-        int setsAfterUpdate = match.getScore().getSets().size();
+        // Calculate winner and update status based on the MANAGED score object
+        logger.debug("Calling managedScore.updateWinner() for match ID: {}", matchId);
+        managedScore.updateWinner(); // Call on managedScore
+        logger.debug("Winner after calculation on managedScore: {}", managedScore.getWinnerSide());
+
+        logger.debug("Calling updateMatchStatus() for match ID: {}. Current status: {}", matchId, match.getStatus());
+        updateMatchStatus(match, managedScore); // Pass managedScore
+        logger.debug("Match status AFTER updateMatchStatus call: {}", match.getStatus());
+
+        int setsAfterUpdate = managedScore.getSets().size();
 
         // Determine the granular status
         ScoreUpdateStatus status;
         if (match.getStatus() == MatchStatus.COMPLETED) {
             status = ScoreUpdateStatus.MATCH_COMPLETED;
         } else if (setsAfterUpdate > setsBeforeUpdate) {
-            // A new set was effectively completed and added in this update
-            status = ScoreUpdateStatus.SET_COMPLETED_MATCH_IN_PROGRESS;
+            boolean lastSetCompleted = false;
+            if (!managedScore.getSets().isEmpty()) {
+                MatchScore.SetScore lastSet = managedScore.getSet(managedScore.getSets().size() - 1);
+                if (lastSet != null && lastSet.getWinner() != null) {
+                    lastSetCompleted = true;
+                }
+            }
+            logger.debug("Sets increased. Last set completed: {}. Determining granular status.", lastSetCompleted);
+            status = lastSetCompleted 
+                ? ScoreUpdateStatus.SET_COMPLETED_MATCH_IN_PROGRESS 
+                : ScoreUpdateStatus.SET_IN_PROGRESS;
         } else {
             status = ScoreUpdateStatus.SET_IN_PROGRESS;
         }
+        logger.debug("Determined ScoreUpdateStatus: {}", status);
 
+        // IMPORTANT: Log the match status just before returning
+        logger.debug("Returning response for match ID: {}. Final match status in returned object: {}", matchId, match.getStatus());
         return new UpdateScoreResponse(match, status);
     }
     
-    /**
-     * Update the match status based on score progress and completion criteria.
-     */
     private void updateMatchStatus(Match match, MatchScore score) {
-        // 1. Check if a winner has already been determined by sets won
-        if (score.getWinnerSide() != null) {
+        logger.debug("Inside updateMatchStatus for match ID: {}. Checking winner...", match.getId());
+        // 1. Check winner by majority sets won
+        PlayerSide winner = score.getWinnerSide();
+        logger.debug("Winner calculated by getWinnerSide(): {}", winner);
+        if (winner != null) {
+            logger.debug("Winner found ({}). Setting match status to COMPLETED.", winner);
             match.setStatus(MatchStatus.COMPLETED);
-            return; // Match is definitively over
+            return;
         }
 
-        // 2. Check if all intended sets have been played
-        if (score.getIntendedTotalSets() > 0 && score.getSets().size() >= score.getIntendedTotalSets()) {
+        // 2. Check if all intended sets played
+        int playedSets = score.getSets() != null ? score.getSets().size() : 0;
+        int intendedSets = score.getIntendedTotalSets();
+        logger.debug("Checking if all sets played: Played = {}, Intended = {}", playedSets, intendedSets);
+        if (intendedSets > 0 && playedSets >= intendedSets) {
+             logger.debug("All intended sets ({}) played. Setting match status to COMPLETED.", intendedSets);
              match.setStatus(MatchStatus.COMPLETED);
              return;
         }
 
-        // 3. If no winner yet and not all sets played, check if it should move to IN_PROGRESS
-        if (match.getStatus() == MatchStatus.PENDING && score.getSets() != null && !score.getSets().isEmpty()) {
+        // 3. Check for transition to IN_PROGRESS
+        logger.debug("Checking if match should become IN_PROGRESS. Current status: {}, Played sets: {}", match.getStatus(), playedSets);
+        if (match.getStatus() == MatchStatus.PENDING && playedSets > 0) {
+            logger.debug("Match was PENDING and has sets played. Setting status to IN_PROGRESS.");
             match.setStatus(MatchStatus.IN_PROGRESS);
         }
+        logger.debug("Exiting updateMatchStatus for match ID: {}. Final status in method: {}", match.getId(), match.getStatus());
     }
 
     @Transactional

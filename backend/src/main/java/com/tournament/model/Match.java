@@ -6,6 +6,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
+import lombok.EqualsAndHashCode;
 import java.time.LocalDateTime;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
@@ -14,6 +16,8 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "tournament")
+@EqualsAndHashCode(exclude = "tournament")
 @Table(name = "matches")
 public class Match {
     @Id

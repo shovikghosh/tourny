@@ -39,12 +39,12 @@ public class MatchScoreTest {
     void testMatchScoreInitialization() {
         MatchScore score = new MatchScore();
         assertEquals(0, score.getSets().size());
-        assertEquals(0, score.getIntendedTotalSets()); // Check renamed field
+        assertEquals(5, score.getIntendedTotalSets()); // Check renamed field
         
         // Test adding a set - should NOT change intendedTotalSets
         score.addNewEmptySet();
         assertEquals(1, score.getSets().size());
-        assertEquals(0, score.getIntendedTotalSets()); // Should still be 0
+        assertEquals(5, score.getIntendedTotalSets()); // Should still be 0
         
         assertNotNull(score.getSet(0));
         assertEquals(0, score.getSet(0).getPlayer1Score());
