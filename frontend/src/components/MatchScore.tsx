@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Match, Set } from '@/types/match';
+import { Match, Set, UpdateMatchScoreRequest } from '@/types/match';
 import { api } from '@/services/api';
 
 interface MatchScoreProps {
@@ -28,49 +28,65 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
             ? currentSet.player1Score + 1 
             : currentSet.player2Score + 1;
 
-        const updatedSet = {
+        // Create the updated set object based on the new score
+        const potentiallyUpdatedSet = {
             ...currentSet,
             [player === 'player1' ? 'player1Score' : 'player2Score']: newScore,
         };
 
-        // Check if set is complete (11 points and 2 points ahead)
-        if (newScore >= 11 && Math.abs(newScore - (player === 'player1' ? currentSet.player2Score : currentSet.player1Score)) >= 2) {
-            updatedSet.winner = player;
-            
-            try {
-                // Update match score
-                const updatedSets = [...match.score.sets, updatedSet];
-                const updatedMatch = await api.updateMatchScore(tournamentId, match.id, {
-                    sets: updatedSets,
-                });
-                
-                console.log("Received updated match from API:", updatedMatch);
+        // --- Determine if this point completes the set --- 
+        let setCompletedByThisPoint = false;
+        let thisSetWinner: ('player1' | 'player2' | undefined) = undefined;
+        if (newScore >= 11 && Math.abs(newScore - (player === 'player1' ? potentiallyUpdatedSet.player2Score : potentiallyUpdatedSet.player1Score)) >= 2) {
+            setCompletedByThisPoint = true;
+            thisSetWinner = player;
+            potentiallyUpdatedSet.winner = thisSetWinner; // Set winner on the temporary object
+        }
 
-                // Ensure the latest set winner is reflected in the object passed upwards
-                // This acts as a safeguard if the API response doesn't immediately reflect the winner of the set just finished.
-                if (updatedMatch && updatedMatch.score && updatedMatch.score.sets) {
-                    const lastSetIndex = updatedMatch.score.sets.length - 1;
-                    if (lastSetIndex >= 0 && updatedSet.winner && !updatedMatch.score.sets[lastSetIndex].winner) {
-                        // If API didn't return the winner for the last set, use the one we calculated
-                        updatedMatch.score.sets[lastSetIndex].winner = updatedSet.winner;
-                        console.log("Manually added winner to last set in updatedMatch"); // Debug log
-                    }
+        if (setCompletedByThisPoint) {
+            // --- If set is completed by this point --- 
+            try {
+                // Prepare the score payload to send to the backend
+                // Includes all previous sets plus the one just completed
+                const scorePayload: UpdateMatchScoreRequest = {
+                    sets: [...match.score.sets, potentiallyUpdatedSet],
+                    // We could potentially send intendedTotalSets here if we allow changing match format
+                };
+
+                // Call the API
+                const response = await api.updateMatchScore(tournamentId, match.id, scorePayload);
+                
+                console.log("API Response:", response); // Debug log
+
+                // Handle based on the status returned from backend
+                switch (response.scoreUpdateStatus) {
+                    case 'MATCH_COMPLETED':
+                        // Match is over, no need to reset currentSet for scoring
+                        setCurrentSet({ player1Score: 0, player2Score: 0 }); // Clear local input 
+                        break;
+                    case 'SET_COMPLETED_MATCH_IN_PROGRESS':
+                        // Set finished, match continues. Reset for next set.
+                        setCurrentSet({ player1Score: 0, player2Score: 0 }); 
+                        break;
+                    case 'SET_IN_PROGRESS': // Should not happen if setCompletedByThisPoint is true, but handle defensively
+                         setCurrentSet(potentiallyUpdatedSet); // Keep current score if backend says set not over
+                         break;
                 }
                 
-                // Reset the current set immediately only if the match is not completed
-                if (updatedMatch.status !== 'COMPLETED') {
-                  setCurrentSet({ player1Score: 0, player2Score: 0 });
-                }
+                // Notify parent component with the full updated match state from backend
+                onScoreUpdate(response.updatedMatch);
                 
-                // Notify parent component about the update
-                onScoreUpdate(updatedMatch);
             } catch (error) {
                 console.error("Failed to update match score:", error);
-                // Keep the local state if the API call fails
-                // Maybe show an error message to the user
+                // Revert local state? Show error?
+                // For now, we don't update the parent state on error.
             }
+
         } else {
-            setCurrentSet(updatedSet);
+             // --- If set is NOT completed by this point --- 
+            // Just update the local state for the current set
+            setCurrentSet(potentiallyUpdatedSet); 
+            // No API call needed yet, just update local display
         }
     };
 

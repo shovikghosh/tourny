@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Match, CreateMatchRequest, UpdateMatchScoreRequest, Tournament, Player } from '@/types/match';
+import { Match, CreateMatchRequest, UpdateMatchScoreRequest, Tournament, Player, UpdateScoreResponse } from '@/types/match';
 
 // Get the base URL from environment variables
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || '';
@@ -47,7 +47,7 @@ export const api = {
             .then(res => res.data),
     
     updateMatchScore: (tournamentId: number, matchId: number, data: UpdateMatchScoreRequest) => 
-        apiClient.put(`/tournaments/${tournamentId}/matches/${matchId}`, data)
+        apiClient.put<UpdateScoreResponse>(`/tournaments/${tournamentId}/matches/${matchId}`, data)
             .then(res => res.data),
             
     // Player endpoints

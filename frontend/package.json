@@ -10,8 +10,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "clean": "rm -rf .next node_modules",
-    "prebuild": "npm prune --production=false"
+    "clean": "rm -rf .next node_modules"
   },
   "dependencies": {
     "@heroicons/react": "^2.1.1",

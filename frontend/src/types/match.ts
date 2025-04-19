@@ -48,4 +48,18 @@ export interface CreateMatchRequest {
 
 export interface UpdateMatchScoreRequest {
     sets: Set[];
+    // Include intendedTotalSets if you want to be able to change match format dynamically
+    // intendedTotalSets?: number; 
+}
+
+// New enum matching the backend
+export type ScoreUpdateStatus =
+  | 'SET_IN_PROGRESS'
+  | 'SET_COMPLETED_MATCH_IN_PROGRESS'
+  | 'MATCH_COMPLETED';
+
+// New response type for the score update endpoint
+export interface UpdateScoreResponse {
+    updatedMatch: Match;
+    scoreUpdateStatus: ScoreUpdateStatus;
 } 

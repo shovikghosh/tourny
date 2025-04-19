@@ -2,6 +2,7 @@ package com.tournament.service;
 
 import com.tournament.dto.CreateMatchRequest;
 import com.tournament.dto.CreateTournamentRequest;
+import com.tournament.dto.UpdateScoreResponse;
 import com.tournament.exception.ResourceNotFoundException;
 import com.tournament.model.MatchScore;
 import com.tournament.model.MatchStatus;
@@ -9,6 +10,7 @@ import com.tournament.model.Tournament;
 import com.tournament.model.TournamentStatus;
 import com.tournament.model.Match;
 import com.tournament.model.Player;
+import com.tournament.model.ScoreUpdateStatus;
 import com.tournament.repository.TournamentRepository;
 import com.tournament.repository.PlayerRepository;
 import lombok.RequiredArgsConstructor;
@@ -117,37 +119,31 @@ public class TournamentService {
     }
 
     @Transactional
-    public void updateMatchScore(Long tournamentId, Long matchId, MatchScore score) {
+    public UpdateScoreResponse updateMatchScore(Long tournamentId, Long matchId, MatchScore scoreUpdate) {
         Match match = getMatch(tournamentId, matchId);
+        int setsBeforeUpdate = match.getScore().getSets().size();
+
+        // Apply the score update
+        match.setScore(scoreUpdate);
         
-        // Ensure the match has all required sets
-        ensureMatchHasRequiredSets(match, score);
-        
-        // Update the match score
-        match.setScore(score);
-        
-        // Calculate and update match winner
-        score.updateWinner();
-        
-        // Update match status based on score progress
-        updateMatchStatus(match, score);
-    }
-    
-    /**
-     * Ensure the match has all the required sets before updating scores
-     */
-    private void ensureMatchHasRequiredSets(Match match, MatchScore score) {
-        if (score.getSets() == null || score.getSets().isEmpty()) {
-            return;
+        // Calculate winner and update overall match status based on the NEW score
+        scoreUpdate.updateWinner(); 
+        updateMatchStatus(match, scoreUpdate);
+
+        int setsAfterUpdate = match.getScore().getSets().size();
+
+        // Determine the granular status
+        ScoreUpdateStatus status;
+        if (match.getStatus() == MatchStatus.COMPLETED) {
+            status = ScoreUpdateStatus.MATCH_COMPLETED;
+        } else if (setsAfterUpdate > setsBeforeUpdate) {
+            // A new set was effectively completed and added in this update
+            status = ScoreUpdateStatus.SET_COMPLETED_MATCH_IN_PROGRESS;
+        } else {
+            status = ScoreUpdateStatus.SET_IN_PROGRESS;
         }
-        
-        // Determine the target number of sets based on the input score's sets
-        int neededSets = score.getSets().size();
-        
-        // Ensure the Match entity's score object has enough SetScore entries
-        while (match.getScore().getSets().size() < neededSets) {
-            match.getScore().addNewEmptySet(); // Use the new method to add empty sets
-        }
+
+        return new UpdateScoreResponse(match, status);
     }
     
     /**
@@ -161,22 +157,15 @@ public class TournamentService {
         }
 
         // 2. Check if all intended sets have been played
-        // This marks the match structure as complete, even if no majority winner was reached yet.
         if (score.getIntendedTotalSets() > 0 && score.getSets().size() >= score.getIntendedTotalSets()) {
              match.setStatus(MatchStatus.COMPLETED);
-             // Note: score.getWinnerSide() might still be null here if, e.g., it was a draw 
-             // after the intended sets according to specific rules not yet implemented, 
-             // but the scheduled sets are finished.
              return;
         }
 
         // 3. If no winner yet and not all sets played, check if it should move to IN_PROGRESS
         if (match.getStatus() == MatchStatus.PENDING && score.getSets() != null && !score.getSets().isEmpty()) {
-            // Match has started (at least one set score recorded) but no winner yet
             match.setStatus(MatchStatus.IN_PROGRESS);
         }
-        // Otherwise, the status remains whatever it was (e.g., PENDING if no sets played,
-        // or IN_PROGRESS if already started but not yet finished/won)
     }
 
     @Transactional

@@ -11,6 +11,7 @@ import com.tournament.dto.CreateTournamentRequest;
 import com.tournament.dto.AddPlayersRequest;
 import com.tournament.model.Match;
 import org.springframework.http.ResponseEntity;
+import com.tournament.dto.UpdateScoreResponse;
 
 @RestController
 @RequestMapping("/api/tournaments")
@@ -61,11 +62,11 @@ public class TournamentController {
     }
     
     @PutMapping("/{tournamentId}/matches/{matchId}")
-    public ResponseEntity<Void> updateMatchScore(
+    public ResponseEntity<UpdateScoreResponse> updateMatchScore(
             @PathVariable Long tournamentId,
             @PathVariable Long matchId,
             @RequestBody MatchScore score) {
-        tournamentService.updateMatchScore(tournamentId, matchId, score);
-        return ResponseEntity.ok().build();
+        UpdateScoreResponse response = tournamentService.updateMatchScore(tournamentId, matchId, score);
+        return ResponseEntity.ok(response);
     }
 } 
