@@ -49,7 +49,7 @@ export default function TournamentsPage() {
   }
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-fadeIn">
       {/* Page header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
         <div>
@@ -82,8 +82,13 @@ export default function TournamentsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tournaments.map((tournament) => (
-            <Link key={tournament.id} href={`/tournaments/${tournament.id}`} className="wtt-card h-full hover:border-primary/50 transition-colors">
+          {tournaments.map((tournament, index) => (
+            <Link 
+              key={tournament.id} 
+              href={`/tournaments/${tournament.id}`} 
+              className="wtt-card-interactive h-full"
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
               <div className="p-6">
                 <h3 className="text-xl font-semibold text-foreground mb-1 truncate">
                   {tournament.name}
@@ -117,7 +122,7 @@ export default function TournamentsPage() {
                   </div>
                 </div>
               </div>
-              <div className="h-1 w-full bg-card border-t border-border opacity-70"></div>
+              <div className="h-1 w-full bg-gradient-to-r from-transparent via-border to-transparent opacity-50"></div>
             </Link>
           ))}
         </div>

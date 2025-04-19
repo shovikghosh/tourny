@@ -1,11 +1,21 @@
 import type { Metadata } from 'next'
-import { Inter } from 'next/font/google'
+import { Inter, Poppins } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import Link from 'next/link'
 import ThemeToggle from '@/components/ThemeToggle'
+import Logo from '@/components/Logo'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter'
+})
+
+const poppins = Poppins({ 
+  subsets: ['latin'], 
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins' 
+})
 
 export const metadata: Metadata = {
   title: 'Table Tennis Tournament',
@@ -19,7 +29,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full dark-theme">
-      <body className={`${inter.className} h-full`}>
+      <body className={`${inter.variable} ${poppins.variable} font-sans h-full`}>
         <Providers>
           <div className="min-h-full flex flex-col">
             {/* Header */}
@@ -28,12 +38,7 @@ export default function RootLayout({
                 <div className="flex items-center justify-between h-20">
                   <div className="flex items-center">
                     <Link href="/" className="flex shrink-0 items-center">
-                      <div className="bg-primary/10 border-2 border-primary h-10 w-10 rounded-full flex items-center justify-center">
-                        <span className="text-primary font-bold text-xl">T</span>
-                      </div>
-                      <span className="ml-3 text-2xl font-bold text-foreground hover:text-primary transition-colors">
-                        TOURNY
-                      </span>
+                      <Logo />
                     </Link>
                   </div>
                   <div className="flex items-center">
