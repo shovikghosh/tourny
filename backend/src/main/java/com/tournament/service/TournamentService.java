@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import com.tournament.config.GameRules;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -31,6 +32,7 @@ public class TournamentService {
     
     private final TournamentRepository tournamentRepository;
     private final PlayerRepository playerRepository;
+    private final GameRules gameRules;
 
     public List<Tournament> getAllTournaments() {
         return tournamentRepository.findAll();
@@ -142,16 +144,36 @@ public class TournamentService {
         int setsBeforeUpdate = managedScore.getSets().size();
         logger.debug("Sets before update: {}", setsBeforeUpdate);
 
-        // Apply score update data
+        // Apply score update data by merging into the managed collection
         if (scoreUpdate.getSets() != null) {
-            managedScore.getSets().clear();
-            managedScore.getSets().addAll(scoreUpdate.getSets());
-            logger.debug("Applied {} sets from update request.", scoreUpdate.getSets().size());
+            List<MatchScore.SetScore> incomingSets = scoreUpdate.getSets();
+            List<MatchScore.SetScore> managedSets = managedScore.getSets();
+            
+            // Ensure managed list can accommodate incoming sets
+            while (managedSets.size() < incomingSets.size()) {
+                managedScore.addNewEmptySet(); // Add placeholders if needed
+            }
+            
+            // Update existing/newly added sets
+            for (int i = 0; i < incomingSets.size(); i++) {
+                MatchScore.SetScore incomingSet = incomingSets.get(i);
+                MatchScore.SetScore managedSet = managedSets.get(i); // Get the managed set
+                
+                if (incomingSet != null && managedSet != null) {
+                    // Update scores on the managed set object
+                    managedSet.setPlayer1Score(incomingSet.getPlayer1Score());
+                    managedSet.setPlayer2Score(incomingSet.getPlayer2Score());
+                    // We don't copy the winner here, it should be calculated
+                } else {
+                    logger.warn("Skipping update for set index {} due to null set object (incoming: {}, managed: {}).", i, incomingSet, managedSet);
+                }
+            }
+            logger.debug("Merged scores for {} sets into managed score.", incomingSets.size());
         }
 
         // Calculate winner and update status based on the MANAGED score object
         logger.debug("Calling managedScore.updateWinner() for match ID: {}", matchId);
-        managedScore.updateWinner(); // Call on managedScore
+        managedScore.updateWinner(gameRules); // Call on managedScore
         logger.debug("Winner after calculation on managedScore: {}", managedScore.getWinnerSide());
 
         logger.debug("Calling updateMatchStatus() for match ID: {}. Current status: {}", matchId, match.getStatus());
@@ -168,20 +190,30 @@ public class TournamentService {
             boolean lastSetCompleted = false;
             if (!managedScore.getSets().isEmpty()) {
                 MatchScore.SetScore lastSet = managedScore.getSet(managedScore.getSets().size() - 1);
-                if (lastSet != null && lastSet.getWinner() != null) {
+                if (lastSet != null && lastSet.getWinner(gameRules) != null) { 
                     lastSetCompleted = true;
                 }
             }
             logger.debug("Sets increased. Last set completed: {}. Determining granular status.", lastSetCompleted);
             status = lastSetCompleted 
                 ? ScoreUpdateStatus.SET_COMPLETED_MATCH_IN_PROGRESS 
-                : ScoreUpdateStatus.SET_IN_PROGRESS;
+                : ScoreUpdateStatus.SET_IN_PROGRESS; 
         } else {
-            status = ScoreUpdateStatus.SET_IN_PROGRESS;
+            // If sets didn't increase, check if the *last existing set* just finished
+             boolean lastSetCompleted = false;
+             if (!managedScore.getSets().isEmpty()) {
+                 MatchScore.SetScore lastSet = managedScore.getSet(managedScore.getSets().size() - 1);
+                 if (lastSet != null && lastSet.getWinner(gameRules) != null) { 
+                     // Need to be careful: was it *already* complete before this update?
+                     // This simple check assumes the update was for the last point of the last set.
+                     // More robust logic might be needed if updates could happen for older sets.
+                     lastSetCompleted = true; 
+                 }
+             }
+             status = lastSetCompleted ? ScoreUpdateStatus.SET_COMPLETED_MATCH_IN_PROGRESS : ScoreUpdateStatus.SET_IN_PROGRESS;
         }
         logger.debug("Determined ScoreUpdateStatus: {}", status);
 
-        // IMPORTANT: Log the match status just before returning
         logger.debug("Returning response for match ID: {}. Final match status in returned object: {}", matchId, match.getStatus());
         return new UpdateScoreResponse(match, status);
     }

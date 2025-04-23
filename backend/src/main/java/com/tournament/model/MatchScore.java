@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.tournament.config.GameRules;
 
 @Embeddable
 @Data
@@ -19,10 +20,6 @@ public class MatchScore {
     
     @Column(name = "winner")
     private String winner; // Stored as string in DB for compatibility
-    
-    // Constants for game rules
-    private static final int MIN_POINTS_TO_WIN = 11;
-    private static final int MIN_POINT_DIFFERENCE = 2;
 
     @Embeddable
     @Data
@@ -36,22 +33,26 @@ public class MatchScore {
         
         /**
          * Determine the winner of this set based on standard table tennis rules.
+         * @param gameRules The game rules configuration.
          * @return PlayerSide of the winner or null if no winner yet
          */
-        public PlayerSide getWinner() {
-            if (player1Score == null || player2Score == null) {
+        public PlayerSide getWinner(GameRules gameRules) {
+            if (player1Score == null || player2Score == null || gameRules == null) {
                 return null;
             }
             
+            int minPoints = gameRules.getMinimumPointsToWinSet();
+            int minDiff = gameRules.getMinimumPointDifference();
+
             // Check if minimum points are reached
-            if (player1Score < MIN_POINTS_TO_WIN && player2Score < MIN_POINTS_TO_WIN) {
-                return null; // No winner yet - neither player reached minimum points
+            if (player1Score < minPoints && player2Score < minPoints) {
+                return null; 
             }
             
             // Check for minimum point difference
             int diff = Math.abs(player1Score - player2Score);
-            if (diff < MIN_POINT_DIFFERENCE) {
-                return null; // No winner yet - point difference too small
+            if (diff < minDiff) {
+                return null; 
             }
             
             // Determine winner based on scores
@@ -60,8 +61,6 @@ public class MatchScore {
             } else if (player2Score > player1Score) {
                 return PlayerSide.PLAYER2;
             } else {
-                // This case should theoretically not be reached if rules are followed,
-                // but handle it defensively.
                 return null;
             }
         }
@@ -160,23 +159,23 @@ public class MatchScore {
     /**
      * Get the number of sets won by player 1
      */
-    public int getPlayer1SetsWon() {
-        return getSetsWonByPlayer(PlayerSide.PLAYER1);
+    public int getPlayer1SetsWon(GameRules gameRules) {
+        return getSetsWonByPlayer(PlayerSide.PLAYER1, gameRules);
     }
     
     /**
      * Get the number of sets won by player 2
      */
-    public int getPlayer2SetsWon() {
-        return getSetsWonByPlayer(PlayerSide.PLAYER2);
+    public int getPlayer2SetsWon(GameRules gameRules) {
+        return getSetsWonByPlayer(PlayerSide.PLAYER2, gameRules);
     }
     
     /**
      * Get number of sets won by a specific player
      */
-    private int getSetsWonByPlayer(PlayerSide side) {
+    private int getSetsWonByPlayer(PlayerSide side, GameRules gameRules) {
         return (int) sets.stream()
-            .filter(set -> set != null && side.equals(set.getWinner()))
+            .filter(set -> set != null && side.equals(set.getWinner(gameRules)))
             .count();
     }
     
@@ -196,17 +195,16 @@ public class MatchScore {
     
     /**
      * Determine the match winner based on sets won and the intended match format.
-     * @return PlayerSide of the match winner, or null if no winner yet
      */
-    public PlayerSide calculateWinner() {
-        if (intendedTotalSets <= 0) {
+    public PlayerSide calculateWinner(GameRules gameRules) {
+        if (intendedTotalSets <= 0 || gameRules == null) {
             return null;
         }
 
-        int player1Sets = getPlayer1SetsWon();
-        int player2Sets = getSetsWonByPlayer(PlayerSide.PLAYER2);
+        int player1Sets = getSetsWonByPlayer(PlayerSide.PLAYER1, gameRules);
+        int player2Sets = getSetsWonByPlayer(PlayerSide.PLAYER2, gameRules);
         
-        int setsToWin = (intendedTotalSets / 2) + 1;
+        int setsToWin = gameRules.getSetsNeededToWin(intendedTotalSets);
         
         if (player1Sets >= setsToWin) {
             return PlayerSide.PLAYER1;
@@ -220,8 +218,8 @@ public class MatchScore {
     /**
      * Update the winner field based on the current set scores and match format.
      */
-    public void updateWinner() {
-        PlayerSide winnerSide = calculateWinner();
+    public void updateWinner(GameRules gameRules) {
+        PlayerSide winnerSide = calculateWinner(gameRules);
         setWinnerSide(winnerSide);
     }
 } 
