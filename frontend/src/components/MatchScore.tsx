@@ -3,6 +3,27 @@
 import { useState, useEffect } from 'react';
 import { Match, Set, UpdateMatchScoreRequest } from '@/types/match';
 import { api } from '@/services/api';
+import { 
+    Box, 
+    Card, 
+    CardContent, 
+    Typography, 
+    TextField, 
+    Button, 
+    Table, 
+    TableBody, 
+    TableCell, 
+    TableContainer, 
+    TableHead, 
+    TableRow, 
+    Paper, 
+    Avatar, 
+    Chip, 
+    Grid, 
+    IconButton,
+    InputAdornment
+} from '@mui/material';
+import { Add as AddIcon, Edit as EditIcon, Check as CheckIcon } from '@mui/icons-material';
 
 interface MatchScoreProps {
     match: Match;
@@ -15,6 +36,10 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
         player1Score: 0,
         player2Score: 0,
     });
+    
+    // State to track if a score is being edited
+    const [isEditingPlayer1, setIsEditingPlayer1] = useState(false);
+    const [isEditingPlayer2, setIsEditingPlayer2] = useState(false);
     
     // Reset the current set when match data changes from outside
     useEffect(() => {
@@ -34,43 +59,87 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
             [player === 'player1' ? 'player1Score' : 'player2Score']: newScore,
         };
 
-        // --- Determine if this point completes the set --- 
+        await updateScore(potentiallyUpdatedSet);
+    };
+
+    const handleDirectScoreInput = (player: 'player1' | 'player2', value: string) => {
+        // Handle direct input of score values
+        const numValue = value === '' ? 0 : parseInt(value, 10);
+        const validValue = isNaN(numValue) ? 0 : Math.max(0, numValue);
+        
+        const updatedSet = {
+            ...currentSet,
+            [`${player}Score`]: validValue,
+        };
+        
+        setCurrentSet(updatedSet);
+    };
+
+    const handleScoreInputBlur = async (player: 'player1' | 'player2') => {
+        // When input loses focus, update the score if needed
+        if (player === 'player1') {
+            setIsEditingPlayer1(false);
+        } else {
+            setIsEditingPlayer2(false);
+        }
+        
+        await updateScore(currentSet);
+    };
+
+    const handleScoreInputKeyDown = async (e: React.KeyboardEvent, player: 'player1' | 'player2') => {
+        if (e.key === 'Enter') {
+            if (player === 'player1') {
+                setIsEditingPlayer1(false);
+            } else {
+                setIsEditingPlayer2(false);
+            }
+            
+            await updateScore(currentSet);
+        }
+    };
+
+    const updateScore = async (newSetState: Set) => {
+        // Determine if this set is completed with these scores
         let setCompletedByThisPoint = false;
         let thisSetWinner: ('player1' | 'player2' | undefined) = undefined;
-        if (newScore >= 11 && Math.abs(newScore - (player === 'player1' ? potentiallyUpdatedSet.player2Score : potentiallyUpdatedSet.player1Score)) >= 2) {
+        
+        const player1Score = newSetState.player1Score || 0;
+        const player2Score = newSetState.player2Score || 0;
+        
+        // Only determine a winner when both scores are present and valid
+        // This ensures we don't prematurely select a winner when only one score has been entered
+        if (player1Score >= 11 && player2Score > 0 && Math.abs(player1Score - player2Score) >= 2) {
             setCompletedByThisPoint = true;
-            thisSetWinner = player;
-            potentiallyUpdatedSet.winner = thisSetWinner; // Set winner on the temporary object
+            thisSetWinner = 'player1';
+            newSetState.winner = thisSetWinner;
+        } else if (player2Score >= 11 && player1Score > 0 && Math.abs(player2Score - player1Score) >= 2) {
+            setCompletedByThisPoint = true;
+            thisSetWinner = 'player2';
+            newSetState.winner = thisSetWinner;
         }
 
         if (setCompletedByThisPoint) {
-            // --- If set is completed by this point --- 
             try {
                 // Prepare the score payload to send to the backend
-                // Includes all previous sets plus the one just completed
                 const scorePayload: UpdateMatchScoreRequest = {
-                    sets: [...match.score.sets, potentiallyUpdatedSet],
-                    // We could potentially send intendedTotalSets here if we allow changing match format
+                    sets: [...match.score.sets, newSetState],
                 };
 
                 // Call the API
                 const response = await api.updateMatchScore(tournamentId, match.id, scorePayload);
                 
-                console.log("API Response:", response); // Debug log
+                console.log("API Response:", response);
 
                 // Handle based on the status returned from backend
                 switch (response.scoreUpdateStatus) {
                     case 'MATCH_COMPLETED':
-                        // Match is over, no need to reset currentSet for scoring
-                        setCurrentSet({ player1Score: 0, player2Score: 0 }); // Clear local input 
-                        break;
                     case 'SET_COMPLETED_MATCH_IN_PROGRESS':
-                        // Set finished, match continues. Reset for next set.
-                        setCurrentSet({ player1Score: 0, player2Score: 0 }); 
+                        // Set finished, reset for next set or match over
+                        setCurrentSet({ player1Score: 0, player2Score: 0 });
                         break;
-                    case 'SET_IN_PROGRESS': // Should not happen if setCompletedByThisPoint is true, but handle defensively
-                         setCurrentSet(potentiallyUpdatedSet); // Keep current score if backend says set not over
-                         break;
+                    case 'SET_IN_PROGRESS':
+                        setCurrentSet(newSetState);
+                        break;
                 }
                 
                 // Notify parent component with the full updated match state from backend
@@ -78,114 +147,293 @@ export default function MatchScore({ match, tournamentId, onScoreUpdate }: Match
                 
             } catch (error) {
                 console.error("Failed to update match score:", error);
-                // Revert local state? Show error?
-                // For now, we don't update the parent state on error.
             }
-
         } else {
-             // --- If set is NOT completed by this point --- 
-            // Just update the local state for the current set
-            setCurrentSet(potentiallyUpdatedSet); 
-            // No API call needed yet, just update local display
+            // If set is NOT completed by these scores, just update the local state
+            setCurrentSet(newSetState);
         }
     };
 
     return (
-        <div className="space-y-6">
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Current set score */}
             {(match.status === 'PENDING' || match.status === 'IN_PROGRESS') && (
-                <div className="bg-card border border-border rounded-lg p-4">
-                    <h4 className="text-foreground font-medium mb-4 text-center">Current Set</h4>
-                    <div className="grid grid-cols-2 gap-6">
-                        <div className="text-center">
-                            <div className="flex items-center justify-center mb-2">
-                                <div className="h-8 w-8 rounded-full bg-primary/20 flex items-center justify-center">
-                                    <span className="text-primary font-bold">P1</span>
-                                </div>
-                                <h3 className="font-semibold text-foreground ml-2">{match.player1.name}</h3>
-                            </div>
-                            <p className="text-4xl font-bold text-foreground">{currentSet.player1Score}</p>
-                            <button
-                                onClick={() => handleScoreUpdate('player1')}
-                                className="mt-3 px-4 py-2 bg-primary text-foreground rounded-md hover:bg-primary/90 transition-colors"
-                                disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
-                            >
-                                Add Point
-                            </button>
-                        </div>
-                        
-                        <div className="text-center">
-                            <div className="flex items-center justify-center mb-2">
-                                <div className="h-8 w-8 rounded-full bg-secondary/20 flex items-center justify-center">
-                                    <span className="text-secondary font-bold">P2</span>
-                                </div>
-                                <h3 className="font-semibold text-foreground ml-2">{match.player2.name}</h3>
-                            </div>
-                            <p className="text-4xl font-bold text-foreground">{currentSet.player2Score}</p>
-                            <button
-                                onClick={() => handleScoreUpdate('player2')}
-                                className="mt-3 px-4 py-2 bg-secondary text-foreground rounded-md hover:bg-secondary/90 transition-colors"
-                                disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
-                            >
-                                Add Point
-                            </button>
-                        </div>
-                    </div>
-                </div>
+                <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                    <CardContent>
+                        <Typography variant="h6" align="center" gutterBottom>
+                            Current Set
+                        </Typography>
+                        <Grid container spacing={3}>
+                            <Grid item xs={6}>
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'center'
+                                }}>
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        mb: 2 
+                                    }}>
+                                        <Avatar 
+                                            sx={{ 
+                                                bgcolor: 'primary.main', 
+                                                color: 'primary.contrastText',
+                                                width: 36,
+                                                height: 36,
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            P1
+                                        </Avatar>
+                                        <Typography 
+                                            variant="subtitle1" 
+                                            sx={{ ml: 1, fontWeight: 'medium' }}
+                                        >
+                                            {match.player1.name}
+                                        </Typography>
+                                    </Box>
+                                    
+                                    {isEditingPlayer1 ? (
+                                        <TextField
+                                            type="number"
+                                            variant="standard"
+                                            InputProps={{
+                                                inputProps: { min: 0 },
+                                                sx: { 
+                                                    fontSize: '2.5rem', 
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center',
+                                                    width: '6rem'
+                                                },
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton 
+                                                            onClick={() => handleScoreInputBlur('player1')}
+                                                            edge="end"
+                                                        >
+                                                            <CheckIcon />
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                            value={isEditingPlayer1 && currentSet.player1Score === 0 ? '' : currentSet.player1Score}
+                                            onChange={(e) => handleDirectScoreInput('player1', e.target.value)}
+                                            onBlur={() => handleScoreInputBlur('player1')}
+                                            onKeyDown={(e) => handleScoreInputKeyDown(e, 'player1')}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <Box 
+                                            sx={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center' 
+                                            }}
+                                        >
+                                            <Typography 
+                                                variant="h3" 
+                                                sx={{ 
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    '&:hover': { color: 'primary.main' }
+                                                }}
+                                                onClick={() => setIsEditingPlayer1(true)}
+                                            >
+                                                {currentSet.player1Score}
+                                            </Typography>
+                                            <IconButton 
+                                                size="small" 
+                                                sx={{ ml: 1 }}
+                                                onClick={() => setIsEditingPlayer1(true)}
+                                            >
+                                                <EditIcon fontSize="small" />
+                                            </IconButton>
+                                        </Box>
+                                    )}
+
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        startIcon={<AddIcon />}
+                                        onClick={() => handleScoreUpdate('player1')}
+                                        disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
+                                        sx={{ mt: 2, width: '100%' }}
+                                    >
+                                        Add Point
+                                    </Button>
+                                </Box>
+                            </Grid>
+                            
+                            <Grid item xs={6}>
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'column', 
+                                    alignItems: 'center'
+                                }}>
+                                    <Box sx={{ 
+                                        display: 'flex', 
+                                        alignItems: 'center', 
+                                        mb: 2 
+                                    }}>
+                                        <Avatar 
+                                            sx={{ 
+                                                bgcolor: 'secondary.main', 
+                                                color: 'secondary.contrastText',
+                                                width: 36,
+                                                height: 36,
+                                                fontWeight: 'bold'
+                                            }}
+                                        >
+                                            P2
+                                        </Avatar>
+                                        <Typography 
+                                            variant="subtitle1" 
+                                            sx={{ ml: 1, fontWeight: 'medium' }}
+                                        >
+                                            {match.player2.name}
+                                        </Typography>
+                                    </Box>
+                                    
+                                    {isEditingPlayer2 ? (
+                                        <TextField
+                                            type="number"
+                                            variant="standard"
+                                            InputProps={{
+                                                inputProps: { min: 0 },
+                                                sx: { 
+                                                    fontSize: '2.5rem', 
+                                                    fontWeight: 'bold',
+                                                    textAlign: 'center',
+                                                    width: '6rem'
+                                                },
+                                                endAdornment: (
+                                                    <InputAdornment position="end">
+                                                        <IconButton 
+                                                            onClick={() => handleScoreInputBlur('player2')}
+                                                            edge="end"
+                                                        >
+                                                            <CheckIcon />
+                                                        </IconButton>
+                                                    </InputAdornment>
+                                                ),
+                                            }}
+                                            value={isEditingPlayer2 && currentSet.player2Score === 0 ? '' : currentSet.player2Score}
+                                            onChange={(e) => handleDirectScoreInput('player2', e.target.value)}
+                                            onBlur={() => handleScoreInputBlur('player2')}
+                                            onKeyDown={(e) => handleScoreInputKeyDown(e, 'player2')}
+                                            autoFocus
+                                        />
+                                    ) : (
+                                        <Box 
+                                            sx={{ 
+                                                display: 'flex', 
+                                                alignItems: 'center' 
+                                            }}
+                                        >
+                                            <Typography 
+                                                variant="h3" 
+                                                sx={{ 
+                                                    fontWeight: 'bold',
+                                                    cursor: 'pointer',
+                                                    '&:hover': { color: 'secondary.main' }
+                                                }}
+                                                onClick={() => setIsEditingPlayer2(true)}
+                                            >
+                                                {currentSet.player2Score}
+                                            </Typography>
+                                            <IconButton 
+                                                size="small" 
+                                                sx={{ ml: 1 }}
+                                                onClick={() => setIsEditingPlayer2(true)}
+                                            >
+                                                <EditIcon fontSize="small" />
+                                            </IconButton>
+                                        </Box>
+                                    )}
+
+                                    <Button
+                                        variant="contained"
+                                        color="secondary"
+                                        startIcon={<AddIcon />}
+                                        onClick={() => handleScoreUpdate('player2')}
+                                        disabled={match.status !== 'PENDING' && match.status !== 'IN_PROGRESS'}
+                                        sx={{ mt: 2, width: '100%' }}
+                                    >
+                                        Add Point
+                                    </Button>
+                                </Box>
+                            </Grid>
+                        </Grid>
+                    </CardContent>
+                </Card>
             )}
 
             {/* Completed sets */}
             {match.score.sets.length > 0 && (
-                <div className="bg-card border border-border rounded-lg p-4">
-                    <h4 className="text-foreground font-medium mb-4">Completed Sets</h4>
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-border">
-                                    <th className="py-2 px-4 text-left text-muted-foreground">Set</th>
-                                    <th className="py-2 px-4 text-center text-muted-foreground">{match.player1.name}</th>
-                                    <th className="py-2 px-4 text-center text-muted-foreground">{match.player2.name}</th>
-                                    <th className="py-2 px-4 text-right text-muted-foreground">Winner</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {match.score.sets.map((set, index) => {
-                                    // --- DEBUG LOGGING ---
-                                    console.log(`Rendering Set ${index + 1}:`, JSON.stringify(set)); 
-                                    // --- END DEBUG LOGGING ---
-                                    return (
-                                        <tr key={`set-${index}-${set?.player1Score}-${set?.player2Score}`} className="border-b border-border/50">
-                                            <td className="py-2 px-4 text-left text-muted-foreground">{index + 1}</td>
-                                            <td className="py-2 px-4 text-center text-foreground font-medium">{set?.player1Score ?? 'N/A'}</td>
-                                            <td className="py-2 px-4 text-center text-foreground font-medium">{set?.player2Score ?? 'N/A'}</td>
-                                            <td className="py-2 px-4 text-right">
+                <Card variant="outlined" sx={{ borderRadius: 2 }}>
+                    <CardContent>
+                        <Typography variant="h6" sx={{ mb: 2 }}>
+                            Completed Sets
+                        </Typography>
+                        <TableContainer component={Paper} variant="outlined">
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Set</TableCell>
+                                        <TableCell align="center">{match.player1.name}</TableCell>
+                                        <TableCell align="center">{match.player2.name}</TableCell>
+                                        <TableCell align="right">Winner</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {match.score.sets.map((set, index) => (
+                                        <TableRow key={`set-${index}-${set?.player1Score}-${set?.player2Score}`}>
+                                            <TableCell>{index + 1}</TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: 'medium' }}>
+                                                {set?.player1Score ?? 'N/A'}
+                                            </TableCell>
+                                            <TableCell align="center" sx={{ fontWeight: 'medium' }}>
+                                                {set?.player2Score ?? 'N/A'}
+                                            </TableCell>
+                                            <TableCell align="right">
                                                 {set?.winner && (
-                                                    <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                                                        set.winner?.toLowerCase() === 'player1' 
-                                                            ? 'bg-primary/20 text-primary' 
-                                                            : 'bg-secondary/20 text-secondary'
-                                                    }`}>
-                                                        {set.winner?.toLowerCase() === 'player1' ? match.player1.name : match.player2.name}
-                                                    </span>
+                                                    <Chip
+                                                        label={set.winner?.toLowerCase() === 'player1' 
+                                                            ? match.player1.name 
+                                                            : match.player2.name
+                                                        }
+                                                        size="small"
+                                                        color={set.winner?.toLowerCase() === 'player1' ? "primary" : "secondary"}
+                                                        variant="outlined"
+                                                    />
                                                 )}
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    </CardContent>
+                </Card>
             )}
 
             {/* Match winner */}
             {match.status === 'COMPLETED' && match.score.winner && (
-                <div className="bg-gradient-to-r from-primary to-secondary rounded-lg p-4 text-center">
-                    <h3 className="font-bold text-foreground text-xl">
-                        Winner: {match.score.winner === 'player1' ? match.player1.name : match.player2.name}
-                    </h3>
-                </div>
+                <Card 
+                    sx={{ 
+                        borderRadius: 2,
+                        background: 'linear-gradient(to right, #3f51b5, #f50057)',
+                        color: 'white',
+                        textAlign: 'center'
+                    }}
+                >
+                    <CardContent>
+                        <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
+                            Winner: {match.score.winner === 'player1' ? match.player1.name : match.player2.name}
+                        </Typography>
+                    </CardContent>
+                </Card>
             )}
-        </div>
+        </Box>
     );
 } 
