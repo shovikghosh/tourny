@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Inter, Poppins } from 'next/font/google'
+import { Inter, Poppins, Roboto } from 'next/font/google'
 import './globals.css'
 import { Providers } from './providers'
 import Link from 'next/link'
@@ -17,6 +17,13 @@ const poppins = Poppins({
   variable: '--font-poppins' 
 })
 
+const roboto = Roboto({
+  weight: ['300', '400', '500', '700'],
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-roboto',
+})
+
 export const metadata: Metadata = {
   title: 'Table Tennis Tournament',
   description: 'Organize and manage table tennis tournaments',
@@ -29,7 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full dark-theme">
-      <body className={`${inter.variable} ${poppins.variable} font-sans h-full`}>
+      <body className={`${inter.variable} ${poppins.variable} ${roboto.variable} font-sans h-full`}>
         <Providers>
           <div className="min-h-full flex flex-col">
             {/* Header */}
