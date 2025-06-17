@@ -96,3 +96,4 @@ dist/
 .nitro/
 .cache/
 .output/ 
+.aider*
